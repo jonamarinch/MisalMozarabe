@@ -46,7 +46,8 @@ class MainActivity : AppCompatActivity() {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         return when (item.itemId) {
-            R.id.action_settings -> true
+            // Debería revisar esto, será útil para el cambio de lengua
+            R.id.action_lang1 -> true
             else -> super.onOptionsItemSelected(item)
         }
     }
