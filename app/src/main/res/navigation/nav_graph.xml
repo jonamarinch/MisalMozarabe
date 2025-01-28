@@ -3,24 +3,42 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/FirstFragment">
+    app:startDestination="@id/EmptyFragment">
 
+    <!-- Empty Fragment as the start destination -->
+    <fragment
+        android:id="@+id/EmptyFragment"
+        android:name="com.example.appmisalmozarabe.BlankFragment"
+        android:label="@string/blank_fragment_label"
+        tools:layout="@layout/fragment_blank">
+
+        <!-- Action to navigate to FirstFragment (text_first) -->
+        <action
+            android:id="@+id/action_EmptyFragment_to_FirstFragment"
+            app:destination="@id/FirstFragment" />
+    </fragment>
+
+    <!-- FirstFragment, which is connected to text_first layout -->
     <fragment
         android:id="@+id/FirstFragment"
-        android:name="com.example.appmisalmozarabe.FirstFragment"
+        android:name="com.example.appmisalmozarabe.FirstText"
         android:label="@string/first_fragment_label"
-        tools:layout="@layout/fragment_first">
+        tools:layout="@layout/text_first">
 
+        <!-- Action to navigate to SecondFragment (text_second) -->
         <action
             android:id="@+id/action_FirstFragment_to_SecondFragment"
             app:destination="@id/SecondFragment" />
     </fragment>
+
+    <!-- SecondFragment, connected to text_second layout -->
     <fragment
         android:id="@+id/SecondFragment"
-        android:name="com.example.appmisalmozarabe.SecondFragment"
+        android:name="com.example.appmisalmozarabe.SecondText"
         android:label="@string/second_fragment_label"
-        tools:layout="@layout/fragment_second">
+        tools:layout="@layout/text_second">
 
+        <!-- Action to navigate back to FirstFragment -->
         <action
             android:id="@+id/action_SecondFragment_to_FirstFragment"
             app:destination="@id/FirstFragment" />
