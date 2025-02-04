@@ -1,19 +1,21 @@
 package com.example.appmisalmozarabe
 
+import android.content.Intent
 import android.os.Bundle
-import com.google.android.material.snackbar.Snackbar
-import androidx.appcompat.app.AppCompatActivity
-import androidx.navigation.findNavController
-import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.navigateUp
-import androidx.navigation.ui.setupActionBarWithNavController
+import android.preference.PreferenceManager
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
+import android.widget.Spinner
+import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
 import com.example.appmisalmozarabe.databinding.ActivityMainBinding
+
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -22,39 +24,87 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        setSupportActionBar(binding.toolbar)
+        // Configurar la Toolbar manualmente si no está en el binding
+        setSupportActionBar(binding.root.findViewById(R.id.toolbar))
 
-        val navController = findNavController(R.id.nav_host_fragment_content_main)
-        appBarConfiguration = AppBarConfiguration(navController.graph)
-        setupActionBarWithNavController(navController, appBarConfiguration)
-
+        // Configurar botón flotante
         binding.fab.setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                .setAction("Action", null)
-                .setAnchorView(R.id.fab).show()
+            // Llamamos a la nueva actividad AboutActivity
+            val intent = Intent(this, AboutActivity::class.java)
+            startActivity(intent)
+        }
+
+        val spinner = findViewById<Spinner>(R.id.spinnerOptions)
+        val selectedOption = findViewById<TextView>(R.id.selectedOption)
+
+
+        // Cargar opciones desde resources
+        val adapter = ArrayAdapter.createFromResource(
+            this, R.array.spinner_options, android.R.layout.simple_spinner_item
+        )
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spinner.adapter = adapter
+
+
+        // Manejar selección del usuario
+        spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(
+                parent: AdapterView<*>,
+                view: View,
+                position: Int,
+                id: Long
+            ) {
+                val option = parent.getItemAtPosition(position).toString()
+                selectedOption.text = "Opción seleccionada: $option"
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+                selectedOption.text = "Selecciona una opción"
+            }
         }
     }
 
+    // Método que se llama cuando se crea el menú de opciones
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        // Inflate the menu; this adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.menu_main, menu)
+
+
+        // Set default language to 'Español' when the menu is created
+        val preferences = PreferenceManager.getDefaultSharedPreferences(this)
+        val selectedLanguage = preferences.getString("selected_language", "español")
+
+        // Set the default selected item
+        if (selectedLanguage == "español") {
+            menu.findItem(R.id.action_lang1).setChecked(true)
+        } else if (selectedLanguage == "language2") {
+            menu.findItem(R.id.action_lang2).setChecked(true)
+        } else if (selectedLanguage == "language3") {
+            menu.findItem(R.id.action_lang3).setChecked(true)
+        }
+
         return true
     }
 
+    // Método que maneja la selección de un item del menú
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        return when (item.itemId) {
-            // Debería revisar esto, será útil para el cambio de lengua
-            R.id.action_lang1 -> true
-            else -> super.onOptionsItemSelected(item)
-        }
-    }
+        val preferences = PreferenceManager.getDefaultSharedPreferences(this)
+        val editor = preferences.edit()
 
-    override fun onSupportNavigateUp(): Boolean {
-        val navController = findNavController(R.id.nav_host_fragment_content_main)
-        return navController.navigateUp(appBarConfiguration)
-                || super.onSupportNavigateUp()
+        when (item.itemId) {
+            R.id.action_lang1 ->             // Set 'Español' as the selected language
+                editor.putString("selected_language", "español")
+
+            R.id.action_lang2 ->             // Set another language as selected
+                editor.putString("selected_language", "language2")
+
+            R.id.action_lang3 ->             // Set another language as selected
+                editor.putString("selected_language", "language3")
+
+            else -> return super.onOptionsItemSelected(item)
+        }
+        editor.apply()
+
+        // You can also change the UI language here based on selection if needed
+        return true
     }
 }
