@@ -11,8 +11,8 @@ import android.widget.ArrayAdapter
 import android.widget.Spinner
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import com.example.appmisalmozarabe.data.SQLiteHelper
 import com.example.appmisalmozarabe.databinding.ActivityMainBinding
-
 
 class MainActivity : AppCompatActivity() {
 
@@ -30,7 +30,7 @@ class MainActivity : AppCompatActivity() {
         // Configurar botón flotante
         binding.fab.setOnClickListener { view ->
             // Llamamos a la nueva actividad AboutActivity
-            val intent = Intent(this, AboutActivity::class.java)
+            val intent = Intent(this, MainActivity::class.java)
             startActivity(intent)
         }
 
@@ -38,10 +38,10 @@ class MainActivity : AppCompatActivity() {
         val selectedOption = findViewById<TextView>(R.id.selectedOption)
 
 
-        // Cargar opciones desde resources
-        val adapter = ArrayAdapter.createFromResource(
-            this, R.array.spinner_options, android.R.layout.simple_spinner_item
-        )
+        // Cargar opciones desde SQLite
+        val dbHelper = SQLiteHelper(this)
+        val fiestas = dbHelper.getAllFiestas()
+        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, fiestas)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinner.adapter = adapter
 

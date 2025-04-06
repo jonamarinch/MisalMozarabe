@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -7,6 +8,7 @@
     android:fitsSystemWindows="true"
     tools:context=".MainActivity">
 
+    <!-- AppBar con título -->
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -15,47 +17,66 @@
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize" />
-
+            android:layout_height="?attr/actionBarSize"
+            android:title="Seleccionar Fecha Litúrgica"
+            android:titleTextColor="@android:color/white"
+            app:backgroundTint="?attr/colorPrimary" />
     </com.google.android.material.appbar.AppBarLayout>
 
+    <!-- Contenido centrado -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:gravity="center"
-        android:layout_marginTop="50dp">
+        android:gravity="center_horizontal"
+        android:padding="24dp"
+        android:layout_marginTop="120dp">
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Selecciona una fecha o domingo:"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Spinner visualmente mejorado con fondo -->
         <Spinner
             android:id="@+id/spinnerOptions"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/spinner_background"
+            android:popupBackground="@drawable/spinner_dropdown_background" />
 
+        <!-- Texto que muestra la opción elegida -->
         <TextView
             android:id="@+id/selectedOption"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Opción seleccionada: "
-            android:textSize="18sp"
-            android:layout_marginTop="20dp" />
+            android:text="Opción seleccionada:"
+            android:textSize="16sp"
+            android:layout_marginTop="24dp" />
 
-        <Button
+        <!-- Botón principal -->
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnContinue"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Continuar"
-            android:layout_marginTop="20dp" />
-
+            style="@style/Widget.Material3.Button"
+            android:layout_marginTop="24dp"
+            app:cornerRadius="16dp"
+            app:icon="@drawable/ic_navigate_next"
+            app:iconGravity="textStart" />
     </LinearLayout>
 
+    <!-- Botón flotante -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
-        android:layout_marginEnd="@dimen/fab_margin"
-        android:layout_marginBottom="16dp"
-        android:contentDescription="Info"
+        android:layout_margin="16dp"
+        android:contentDescription="Información"
         app:srcCompat="@drawable/info_svgrepo_com" />
-
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
