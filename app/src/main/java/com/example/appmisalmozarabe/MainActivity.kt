@@ -27,84 +27,52 @@ class MainActivity : AppCompatActivity() {
         // Configurar la Toolbar manualmente si no está en el binding
         setSupportActionBar(binding.root.findViewById(R.id.toolbar))
 
-        // Configurar botón flotante
+        /* Configurar botón flotante
         binding.fab.setOnClickListener { view ->
             // Llamamos a la nueva actividad AboutActivity
             val intent = Intent(this, MainActivity::class.java)
             startActivity(intent)
-        }
+        }*/
 
-        val spinner = findViewById<Spinner>(R.id.spinnerOptions)
-        val selectedOption = findViewById<TextView>(R.id.selectedOption)
-
-
-        // Cargar opciones desde SQLite
+        // Spinner para seleccionar tiempo litúrgico
+        val spinnerTiempos = findViewById<Spinner>(R.id.spinnerTiempos)
+        // Spinner para seleccionar fiesta litúrgica
+        val spinnerFiestas = findViewById<Spinner>(R.id.spinnerFiestas)
+        // Clase para recoger datos
         val dbHelper = SQLiteHelper(this)
-        val fiestas = dbHelper.getAllFiestas()
-        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, fiestas)
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        spinner.adapter = adapter
 
 
-        // Manejar selección del usuario
-        spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(
-                parent: AdapterView<*>,
-                view: View,
-                position: Int,
-                id: Long
-            ) {
-                val option = parent.getItemAtPosition(position).toString()
-                selectedOption.text = "Opción seleccionada: $option"
+        // Cargar tiempos litúrgicos
+        val tiempos = dbHelper.getAllTiempos()
+        val tiemposAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, tiempos)
+        tiemposAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spinnerTiempos.adapter = tiemposAdapter
+
+
+        // Listener para el primer spinner (tiempos litúrgicos)
+        spinnerTiempos.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
+                val tiempoSeleccionado = parent.getItemAtPosition(position).toString()
+                // Al seleccionar un tiempo, se actualizan las opciones para las fiestas:
+                val fiestas = dbHelper.getFiestasPorTiempo(tiempoSeleccionado)
+                val fiestasAdapter = ArrayAdapter(this@MainActivity, android.R.layout.simple_spinner_item, fiestas)
+                fiestasAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+                spinnerFiestas.adapter = fiestasAdapter
             }
 
             override fun onNothingSelected(parent: AdapterView<*>?) {
-                selectedOption.text = "Selecciona una opción"
+                // Opción vacía
             }
         }
-    }
 
-    // Método que se llama cuando se crea el menú de opciones
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.menu_main, menu)
+        // Listener para el segundo spinner (fiestas litúrgicas)
+        spinnerFiestas.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
+                val fiestaSeleccionada = parent.getItemAtPosition(position).toString()
+                binding.selectedOption.text = "Fiesta: $fiestaSeleccionada"
+            }
 
-
-        // Set default language to 'Español' when the menu is created
-        val preferences = PreferenceManager.getDefaultSharedPreferences(this)
-        val selectedLanguage = preferences.getString("selected_language", "español")
-
-        // Set the default selected item
-        if (selectedLanguage == "español") {
-            menu.findItem(R.id.action_lang1).setChecked(true)
-        } else if (selectedLanguage == "language2") {
-            menu.findItem(R.id.action_lang2).setChecked(true)
-        } else if (selectedLanguage == "language3") {
-            menu.findItem(R.id.action_lang3).setChecked(true)
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
-
-        return true
-    }
-
-    // Método que maneja la selección de un item del menú
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        val preferences = PreferenceManager.getDefaultSharedPreferences(this)
-        val editor = preferences.edit()
-
-        when (item.itemId) {
-            R.id.action_lang1 ->             // Set 'Español' as the selected language
-                editor.putString("selected_language", "español")
-
-            R.id.action_lang2 ->             // Set another language as selected
-                editor.putString("selected_language", "language2")
-
-            R.id.action_lang3 ->             // Set another language as selected
-                editor.putString("selected_language", "language3")
-
-            else -> return super.onOptionsItemSelected(item)
-        }
-        editor.apply()
-
-        // You can also change the UI language here based on selection if needed
-        return true
     }
 }

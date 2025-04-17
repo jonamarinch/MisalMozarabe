@@ -15,8 +15,13 @@ class SQLiteHelper(private val context: Context) {
     private var database: SQLiteDatabase? = null
 
     init {
-        copyDatabaseIfNeeded()
-        openDatabase()
+        try {
+            copyDatabaseIfNeeded()
+            openDatabase()
+            verificarTablas()
+        } catch (e: Exception) {
+            Log.e("SQLiteHelper", "Error durante la inicialización: ${e.message}")
+        }
     }
 
     private fun copyDatabaseIfNeeded() {
@@ -35,29 +40,92 @@ class SQLiteHelper(private val context: Context) {
                     }
                 }
                 Log.d("SQLiteHelper", "Base de datos copiada desde assets.")
+                Log.d("SQLiteHelper", "Ruta final del archivo: ${dbPath.path}")
+                Log.d("SQLiteHelper", "Tamaño archivo: ${dbPath.length()} bytes")
             } catch (e: Exception) {
                 Log.e("SQLiteHelper", "Error al copiar la base de datos: ${e.message}")
+                throw e
             }
         } else {
-            Log.d("SQLiteHelper", "La base de datos ya existe, no se copia.")
+            Log.d("SQLiteHelper", "Base de datos ya existe, no se copia.")
         }
     }
 
     private fun openDatabase() {
         val dbPath = context.getDatabasePath(DB_NAME)
-        database = SQLiteDatabase.openDatabase(dbPath.path, null, SQLiteDatabase.OPEN_READWRITE)
+        try {
+            database = SQLiteDatabase.openDatabase(dbPath.path, null, SQLiteDatabase.OPEN_READWRITE)
+            Log.d("SQLiteHelper", "Base de datos abierta correctamente.")
+        } catch (e: Exception) {
+            Log.e("SQLiteHelper", "Error al abrir la base de datos: ${e.message}")
+            throw e
+        }
     }
 
+    private fun verificarTablas() {
+        val cursor = database?.rawQuery("SELECT name FROM sqlite_master WHERE type='table'", null)
+        cursor?.use {
+            val tablas = mutableListOf<String>()
+            while (it.moveToNext()) {
+                tablas.add(it.getString(0))
+            }
+            Log.d("SQLiteHelper", "Tablas encontradas en DB: $tablas")
+
+            if (!tablas.contains("TIEMPOS") || !tablas.contains("FIESTAS")) {
+                throw IllegalStateException("Faltan tablas requeridas: TIEMPOS o FIESTAS")
+            }
+        }
+    }
+
+    /*
+    Devuelve todos los tiempos litúrgicos
+    */
+    fun getAllTiempos(): List<String> {
+        val list = mutableListOf<String>()
+        val cursor = database?.rawQuery("SELECT NOMBRE FROM TIEMPOS ORDER BY ORDEN", null)
+        cursor?.use {
+            while (it.moveToNext()) {
+                list.add(it.getString(0))
+            }
+        }
+        return list
+    }
+
+    /*
+    Devuelve todas las fiestas
+     */
     fun getAllFiestas(): List<String> {
         val list = mutableListOf<String>()
         val cursor = database?.rawQuery("SELECT NOMBRE FROM FIESTAS ORDER BY ID", null)
         cursor?.use {
-            if (it.moveToFirst()) {
-                do {
-                    list.add(it.getString(0))
-                } while (it.moveToNext())
+            while (it.moveToNext()) {
+                list.add(it.getString(0))
             }
         }
+        return list
+    }
+
+    /*
+    Devuelve las fiestas asociadas a un tiempo litúrgico dado por su nombre
+     */
+    fun getFiestasPorTiempo(nombreTiempo: String): List<String> {
+        val list = mutableListOf<String>()
+        val cursor = database?.rawQuery(
+            """
+                SELECT FIESTAS.NOMBRE
+                FROM FIESTAS
+                JOIN TIEMPOS ON FIESTAS.TIEMPO = TIEMPOS.ID
+                WHERE TIEMPOS.NOMBRE = ?
+                ORDER BY FIESTAS.ID
+            """.trimIndent(), arrayOf(nombreTiempo)
+        )
+
+        cursor?.use {
+            while (it.moveToNext()) {
+                list.add(it.getString(0))
+            }
+        }
+
         return list
     }
 
