@@ -3,8 +3,8 @@ package com.example.appmisalmozarabe.data
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.util.Log
-import java.io.File
 import java.io.FileOutputStream
+import com.example.appmisalmozarabe.domain.model.TextoLiturgico
 
 class SQLiteHelper(private val context: Context) {
 
@@ -131,5 +131,50 @@ class SQLiteHelper(private val context: Context) {
 
     fun close() {
         database?.close()
+    }
+
+    /*
+    Devuelve el código de fiesta y de tiempo al recibir el nombre de una fiesta seleccionada
+    */
+    fun getCodigoFiestaYTiempo(nombreFiesta: String): Pair<String, String>? {
+        val cursor = database?.rawQuery(
+            """
+            SELECT FIESTAS.ID, FIESTAS.TIEMPO
+            FROM FIESTAS
+            WHERE FIESTAS.NOMBRE = ?
+        """.trimIndent(), arrayOf(nombreFiesta)
+        )
+
+        cursor?.use {
+            if (it.moveToFirst()) {
+                val idFiesta = it.getString(0)
+                val idTiempo = it.getString(1)
+                return Pair(idFiesta, idTiempo)
+            }
+        }
+
+        return null
+    }
+
+    fun getPraelegendum(idFiesta: String?, idTiempo: String?): List<TextoLiturgico> {
+        val lista = mutableListOf<TextoLiturgico>()
+        val cursor = database?.rawQuery(
+            """
+        SELECT TIPO, TEXTO
+        FROM PRAELEGENDUM
+        WHERE FIESTA = ? OR FIESTA IS NULL OR TIEMPO = ?
+        ORDER BY ORDEN
+        """.trimIndent(), arrayOf(idFiesta, idTiempo)
+        )
+
+        cursor?.use {
+            while (it.moveToNext()) {
+                val tipo = it.getInt(0)
+                val texto = it.getString(1)
+                lista.add(TextoLiturgico(tipo, texto))
+            }
+        }
+
+        return lista
     }
 }
