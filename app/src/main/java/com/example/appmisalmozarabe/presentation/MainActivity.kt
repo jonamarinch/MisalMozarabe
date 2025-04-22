@@ -1,18 +1,17 @@
-package com.example.appmisalmozarabe
+package com.example.appmisalmozarabe.presentation
 
 import android.content.Intent
 import android.os.Bundle
-import android.preference.PreferenceManager
-import android.view.Menu
-import android.view.MenuItem
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Spinner
-import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.example.appmisalmozarabe.R
 import com.example.appmisalmozarabe.data.SQLiteHelper
 import com.example.appmisalmozarabe.databinding.ActivityMainBinding
+import com.google.android.material.button.MaterialButton
 
 class MainActivity : AppCompatActivity() {
 
@@ -48,6 +47,8 @@ class MainActivity : AppCompatActivity() {
         tiemposAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinnerTiempos.adapter = tiemposAdapter
 
+        // Variable para almacenar la última fiesta seleccionada
+        var fiestaSeleccionada: String? = null
 
         // Listener para el primer spinner (tiempos litúrgicos)
         spinnerTiempos.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
@@ -68,11 +69,25 @@ class MainActivity : AppCompatActivity() {
         // Listener para el segundo spinner (fiestas litúrgicas)
         spinnerFiestas.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
-                val fiestaSeleccionada = parent.getItemAtPosition(position).toString()
+                fiestaSeleccionada = parent.getItemAtPosition(position).toString()
                 binding.selectedOption.text = "Fiesta: $fiestaSeleccionada"
             }
 
             override fun onNothingSelected(parent: AdapterView<*>?) {}
+        }
+
+        // Botón principal
+        val botonContinuar = findViewById<MaterialButton>(R.id.btnContinue)
+
+        // Listener para el botón principal
+        botonContinuar.setOnClickListener {
+            if (fiestaSeleccionada != null) {
+                val intent = Intent(this, DisplayActivity::class.java)
+                intent.putExtra("nombreFiesta", fiestaSeleccionada)
+                startActivity(intent)
+            } else {
+                Toast.makeText(this, "Por favor, selecciona una fiesta", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 }

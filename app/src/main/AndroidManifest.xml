@@ -13,10 +13,9 @@
         android:theme="@style/Theme.AppMisalMozarabe"
         tools:targetApi="31">
         <activity
-            android:name=".AboutActivity"
-            android:exported="false" />
+            android:name=".presentation.DisplayActivity" />
         <activity
-            android:name=".MainActivity"
+            android:name=".presentation.MainActivity"
             android:exported="true"
             android:theme="@style/Theme.AppMisalMozarabe">
             <intent-filter>
