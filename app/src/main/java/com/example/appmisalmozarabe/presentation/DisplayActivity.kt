@@ -1,6 +1,7 @@
 package com.example.appmisalmozarabe.presentation
 
 import android.content.Intent
+import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Bundle
 import android.view.Gravity
@@ -36,10 +37,10 @@ class DisplayActivity : AppCompatActivity() {
         // Crear y añadir TextView para el subtítulo
         val subtituloTextView = TextView(this).apply {
             text = "Oficio de la Misa"
-            textSize = 24f
+            textSize = 20f
             setTypeface(null, Typeface.BOLD)
             gravity = Gravity.CENTER
-            setPadding(0, 0, 0, 24)
+            setPadding(0, 0, 0, 95)
         }
         contenedor.addView(subtituloTextView)
 
@@ -93,8 +94,14 @@ class DisplayActivity : AppCompatActivity() {
 
         // Listener para el botón para volver
         botonVolver.setOnClickListener {
-            val intent = Intent(this, MainActivity::class.java)
+            val intent = Intent(this, MainActivity::class.java).apply {
+                // Recupera los valores actuales de los spinners
+                val nombreTiempo = dbHelper.getTiempoFromFiesta(nombreFiesta)
+                putExtra("tiempo", nombreTiempo) // Reemplaza con tu variable real
+                putExtra("fiesta", nombreFiesta) // Reemplaza con tu variable real
+            }
             startActivity(intent)
+            finish() // Cierra la actividad actual
         }
     }
 
@@ -105,6 +112,10 @@ class DisplayActivity : AppCompatActivity() {
                 0 -> imprimirTextoNormal(contenedor, texto.contenido)
                 1 -> imprimirRubrica(contenedor, texto.contenido)
                 2 -> imprimirSemiRubrica(contenedor, texto.contenido)
+                3 -> imprimirRubricaCentrada(contenedor, texto.contenido)
+                4 -> imprimirRubricaCentradaNegrita(contenedor, texto.contenido)
+                5 -> imprimirTextoPueblo(contenedor, texto.contenido)
+                6 -> imprimirTextoCoro(contenedor, texto.contenido)
                 else -> imprimirTextoNormal(contenedor, texto.contenido)
             }
         }
@@ -116,6 +127,7 @@ class DisplayActivity : AppCompatActivity() {
             text = texto
             textSize = 18f
             setPadding(16, 8, 16, 8)
+            setTextColor(Color.BLACK)
         }
         contenedor.addView(textView)
     }
@@ -132,6 +144,34 @@ class DisplayActivity : AppCompatActivity() {
         contenedor.addView(textView)
     }
 
+    // Metodo para imprimir rubrica centrada
+    private fun imprimirRubricaCentrada(contenedor: LinearLayout, texto: String) {
+        val textView = TextView(this).apply {
+            text = texto
+            textSize = 18f
+            setTypeface(null, Typeface.ITALIC)
+            setTextColor(resources.getColor(R.color.rubrica, null)) // Asegúrate de tener este color en `colors.xml`
+            setPadding(16, 8, 16, 95)
+            // Centrar texto horizontalmente
+            gravity = Gravity.CENTER
+        }
+        contenedor.addView(textView)
+    }
+
+    // Metodo para imprimir rubrica centrada y en negrita
+    private fun imprimirRubricaCentradaNegrita(contenedor: LinearLayout, texto: String) {
+        val textView = TextView(this).apply {
+            text = texto
+            textSize = 18f
+            setTypeface(null, Typeface.BOLD)
+            setTextColor(resources.getColor(R.color.rubrica, null)) // Asegúrate de tener este color en `colors.xml`
+            setPadding(16, 8, 16, 8)
+            // Centrar texto horizontalmente
+            gravity = Gravity.CENTER
+        }
+        contenedor.addView(textView)
+    }
+
     // Metodo para imprimir rubrica (al principio) y texto normal
     private fun imprimirSemiRubrica(contenedor: LinearLayout, texto: String) {
         // Buscar el índice del primer punto o dos puntos
@@ -143,7 +183,7 @@ class DisplayActivity : AppCompatActivity() {
 
         // Aplicar estilo a la parte de la rúbrica
         spannable.setSpan(
-            android.text.style.StyleSpan(Typeface.BOLD_ITALIC),
+            android.text.style.StyleSpan(Typeface.ITALIC),
             0,
             rubricaHasta,
             android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
@@ -168,6 +208,30 @@ class DisplayActivity : AppCompatActivity() {
             setPadding(16, 8, 16, 8)
         }
 
+        contenedor.addView(textView)
+    }
+
+    // Metodo para imprimir texto del pueblo
+    private fun imprimirTextoPueblo(contenedor: LinearLayout, texto: String) {
+        val textView = TextView(this).apply {
+            text = texto
+            textSize = 18f
+            setPadding(125, 8, 16, 8)
+            setTextColor(Color.BLACK)
+            typeface = Typeface.DEFAULT_BOLD
+        }
+        contenedor.addView(textView)
+    }
+
+    // Metodo para imprimir texto del coro
+    private fun imprimirTextoCoro(contenedor: LinearLayout, texto: String) {
+        val textView = TextView(this).apply {
+            text = texto
+            textSize = 18f
+            setPadding(16, 8, 16, 8)
+            setTextColor(Color.BLACK)
+            typeface = Typeface.DEFAULT_BOLD
+        }
         contenedor.addView(textView)
     }
 }

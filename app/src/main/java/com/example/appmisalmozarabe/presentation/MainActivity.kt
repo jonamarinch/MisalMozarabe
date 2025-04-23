@@ -26,6 +26,10 @@ class MainActivity : AppCompatActivity() {
         // Configurar la Toolbar manualmente si no está en el binding
         setSupportActionBar(binding.root.findViewById(R.id.toolbar))
 
+        // Obtener parámetros del Intent
+        val tiempoParam = intent.getStringExtra("tiempo")
+        val fiestaParam = intent.getStringExtra("fiesta")
+
         /* Configurar botón flotante
         binding.fab.setOnClickListener { view ->
             // Llamamos a la nueva actividad AboutActivity
@@ -47,8 +51,16 @@ class MainActivity : AppCompatActivity() {
         tiemposAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinnerTiempos.adapter = tiemposAdapter
 
+        // Establecer selección inicial para tiempo si viene en parámetros
+        tiempoParam?.let { tiempo ->
+            val posicion = tiempos.indexOfFirst { it == tiempo }
+            if (posicion >= 0) {
+                spinnerTiempos.setSelection(posicion)
+            }
+        }
+
         // Variable para almacenar la última fiesta seleccionada
-        var fiestaSeleccionada: String? = null
+        var fiestaSeleccionada: String? = fiestaParam // Inicializar con el parámetro si se vuelve del Display
 
         // Listener para el primer spinner (tiempos litúrgicos)
         spinnerTiempos.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
@@ -59,6 +71,14 @@ class MainActivity : AppCompatActivity() {
                 val fiestasAdapter = ArrayAdapter(this@MainActivity, android.R.layout.simple_spinner_item, fiestas)
                 fiestasAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
                 spinnerFiestas.adapter = fiestasAdapter
+
+                // Establecer selección inicial para fiesta después de cargar el adapter
+                fiestaSeleccionada?.let { fiesta ->
+                    val posicion = fiestas.indexOfFirst { it == fiesta }
+                    if (posicion >= 0) {
+                        spinnerFiestas.setSelection(posicion)
+                    }
+                }
             }
 
             override fun onNothingSelected(parent: AdapterView<*>?) {

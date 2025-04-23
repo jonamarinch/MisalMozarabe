@@ -92,20 +92,6 @@ class SQLiteHelper(private val context: Context) {
     }
 
     /*
-    Devuelve todas las fiestas
-     */
-    fun getAllFiestas(): List<String> {
-        val list = mutableListOf<String>()
-        val cursor = database?.rawQuery("SELECT NOMBRE FROM FIESTAS ORDER BY ID", null)
-        cursor?.use {
-            while (it.moveToNext()) {
-                list.add(it.getString(0))
-            }
-        }
-        return list
-    }
-
-    /*
     Devuelve las fiestas asociadas a un tiempo litúrgico dado por su nombre
      */
     fun getFiestasPorTiempo(nombreTiempo: String): List<String> {
@@ -134,7 +120,30 @@ class SQLiteHelper(private val context: Context) {
     }
 
     /*
-    Devuelve el código de fiesta y de tiempo al recibir el nombre de una fiesta seleccionada
+    Devuelve el nombre del tiempo al recibir el nombre de una fiesta
+    */
+    fun getTiempoFromFiesta(nombreFiesta: String): String? {
+        val cursor = database?.rawQuery(
+            """
+            SELECT TIEMPOS.NOMBRE
+            FROM TIEMPOS
+            JOIN FIESTAS ON FIESTAS.TIEMPO = TIEMPOS.ID
+            WHERE FIESTAS.NOMBRE = ?
+        """.trimIndent(), arrayOf(nombreFiesta)
+        )
+
+        cursor?.use {
+            if (it.moveToFirst()) {
+                val nomTiempo = it.getString(0)
+                return nomTiempo
+            }
+        }
+
+        return null
+    }
+
+    /*
+    Devuelve el código de fiesta y de tiempo al recibir el nombre de una fiesta
     */
     fun getCodigoFiestaYTiempo(nombreFiesta: String): Pair<String, String>? {
         val cursor = database?.rawQuery(
@@ -156,15 +165,28 @@ class SQLiteHelper(private val context: Context) {
         return null
     }
 
+    /*
+     * Duplica un parámetro [n] veces en un Array.
+     * Para consultas SQL con parámetros repetidos.
+     */
+    inline fun <reified T> T.repeatInSQLParams(times: Int): Array<T> = Array(times) { this }
+    /*
+    Devuelve los textos del praelegendum asociados a fiesta o tiempo en orden
+     */
     fun getPraelegendum(idFiesta: String?, idTiempo: String?): List<TextoLiturgico> {
         val lista = mutableListOf<TextoLiturgico>()
+
+        // Preparamos los parámetros usando la función de extensión
+        val params = idFiesta.repeatInSQLParams(2) + arrayOf(idTiempo)
+
         val cursor = database?.rawQuery(
             """
         SELECT TIPO, TEXTO
         FROM PRAELEGENDUM
-        WHERE FIESTA = ? OR FIESTA IS NULL OR TIEMPO = ?
+        WHERE FIESTA = ? OR FIESTA IS NULL OR FIESTA2 = ? OR TIEMPO = ? 
         ORDER BY ORDEN
-        """.trimIndent(), arrayOf(idFiesta, idTiempo)
+        """.trimIndent(),
+            params
         )
 
         cursor?.use {
