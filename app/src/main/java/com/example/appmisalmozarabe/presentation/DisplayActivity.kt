@@ -29,6 +29,7 @@ class DisplayActivity : AppCompatActivity() {
             text = nombreFiesta
             textSize = 24f
             setTypeface(null, Typeface.BOLD)
+            setTextColor(Color.DKGRAY)
             gravity = Gravity.CENTER
             setPadding(0, 0, 0, 24)
         }
@@ -39,6 +40,7 @@ class DisplayActivity : AppCompatActivity() {
             text = "Oficio de la Misa"
             textSize = 20f
             setTypeface(null, Typeface.BOLD)
+            setTextColor(Color.DKGRAY)
             gravity = Gravity.CENTER
             setPadding(0, 0, 0, 95)
         }

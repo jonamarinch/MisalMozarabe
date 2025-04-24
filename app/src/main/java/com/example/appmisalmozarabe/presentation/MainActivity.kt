@@ -47,8 +47,8 @@ class MainActivity : AppCompatActivity() {
 
         // Cargar tiempos litúrgicos
         val tiempos = dbHelper.getAllTiempos()
-        val tiemposAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, tiempos)
-        tiemposAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        val tiemposAdapter = ArrayAdapter(this, R.layout.spinner_item, tiempos)
+        tiemposAdapter.setDropDownViewResource(R.layout.spinner_item)
         spinnerTiempos.adapter = tiemposAdapter
 
         // Establecer selección inicial para tiempo si viene en parámetros
@@ -68,8 +68,8 @@ class MainActivity : AppCompatActivity() {
                 val tiempoSeleccionado = parent.getItemAtPosition(position).toString()
                 // Al seleccionar un tiempo, se actualizan las opciones para las fiestas:
                 val fiestas = dbHelper.getFiestasPorTiempo(tiempoSeleccionado)
-                val fiestasAdapter = ArrayAdapter(this@MainActivity, android.R.layout.simple_spinner_item, fiestas)
-                fiestasAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+                val fiestasAdapter = ArrayAdapter(this@MainActivity, R.layout.spinner_item, fiestas)
+                fiestasAdapter.setDropDownViewResource(R.layout.spinner_item)
                 spinnerFiestas.adapter = fiestasAdapter
 
                 // Establecer selección inicial para fiesta después de cargar el adapter

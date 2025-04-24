@@ -6,7 +6,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context=".presentation.MainActivity">
+    tools:context=".presentation.MainActivity"
+    android:background="#FFF8F0"> <!-- Fondo beige claro en formato HEX -->
 
     <!-- AppBar con título -->
     <com.google.android.material.appbar.AppBarLayout
@@ -19,7 +20,7 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:title="Seleccionar Fecha Litúrgica"
-            android:titleTextColor="@android:color/white"
+            android:titleTextColor="@android:color/black"
             app:backgroundTint="?attr/colorPrimary" />
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -38,6 +39,7 @@
             android:text="Selecciona una fecha o domingo:"
             android:textSize="18sp"
             android:textStyle="bold"
+            android:textColor="#000000"
             android:layout_marginBottom="16dp" />
 
         <!-- Spinner para tiempos litúrgicos visualmente mejorado con fondo -->
@@ -61,8 +63,8 @@
             android:id="@+id/selectedOption"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Opción seleccionada:"
             android:textSize="16sp"
+            android:textColor="#000000"
             android:layout_marginTop="24dp" />
 
         <!-- Botón principal -->

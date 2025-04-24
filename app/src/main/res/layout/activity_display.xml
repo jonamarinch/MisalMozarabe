@@ -4,7 +4,8 @@
     android:id="@+id/displayRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:background="#FFF8F0"> <!-- Fondo beige claro en formato HEX -->
 
     <!-- Scroll del contenido -->
     <ScrollView
