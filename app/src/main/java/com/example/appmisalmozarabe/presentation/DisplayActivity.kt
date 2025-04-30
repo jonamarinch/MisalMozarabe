@@ -4,10 +4,14 @@ import android.content.Intent
 import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Bundle
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.style.ForegroundColorSpan
 import android.view.Gravity
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import com.example.appmisalmozarabe.R
 import com.google.android.material.button.MaterialButton
 import com.example.appmisalmozarabe.data.SQLiteHelper
@@ -58,8 +62,32 @@ class DisplayActivity : AppCompatActivity() {
                 // Acción para Adviento
 
                 // Cargar textos Praelegendum
-                val textosPrae = dbHelper.getPraelegendum(seleccion?.first, seleccion?.second)
-                imprimirTextosLiturgicos(contenedor, textosPrae)
+                var textosCargados = dbHelper.getTextos(seleccion?.first, seleccion?.second, "PRAELEGENDUM")
+                imprimirTextosLiturgicos(contenedor, textosCargados)
+                // Cargar textos PostGloriam
+                textosCargados = dbHelper.getTextos(seleccion?.first, seleccion?.second, "POSTGLORIAM")
+                imprimirTextosLiturgicos(contenedor, textosCargados)
+                // Cargar textos Profecias
+                textosCargados = dbHelper.getTextos(seleccion?.first, seleccion?.second, "PROFECIA")
+                imprimirTextosLiturgicos(contenedor, textosCargados)
+                // Cargar textos Salmo
+                textosCargados = dbHelper.getTextos(seleccion?.first, seleccion?.second, "SALMO")
+                imprimirTextosLiturgicos(contenedor, textosCargados)
+                // Cargar textos Apostol
+                textosCargados = dbHelper.getTextos(seleccion?.first, seleccion?.second, "APOSTOL")
+                imprimirTextosLiturgicos(contenedor, textosCargados)
+                // Cargar textos Evangelio
+                textosCargados = dbHelper.getTextos(seleccion?.first, seleccion?.second, "EVANGELIO")
+                imprimirTextosLiturgicos(contenedor, textosCargados)
+                // Cargar textos Laudes
+                textosCargados = dbHelper.getTextos(seleccion?.first, seleccion?.second, "LAUDES")
+                imprimirTextosLiturgicos(contenedor, textosCargados)
+                // Cargar textos Sacrificium
+                textosCargados = dbHelper.getTextos(seleccion?.first, seleccion?.second, "SACRIFICIUM")
+                imprimirTextosLiturgicos(contenedor, textosCargados)
+                // Cargar textos IncipitMissa
+                textosCargados = dbHelper.getTextos(seleccion?.first, seleccion?.second, "INCIPITMISSA")
+                imprimirTextosLiturgicos(contenedor, textosCargados)
             }
             "NAV" -> {
                 // Acción para Navidad
@@ -68,8 +96,8 @@ class DisplayActivity : AppCompatActivity() {
                 // Acción para Después de Epifanía
 
                 // Cargar textos Praelegendum
-                val textosPrae = dbHelper.getPraelegendum(seleccion?.first, seleccion?.second)
-                imprimirTextosLiturgicos(contenedor, textosPrae)
+                var textosCargados = dbHelper.getTextos(seleccion?.first, seleccion?.second, "PRAELEGENDUM")
+                imprimirTextosLiturgicos(contenedor, textosCargados)
             }
             "CUA" -> {
                 // Acción para Cuaresma
@@ -126,11 +154,30 @@ class DisplayActivity : AppCompatActivity() {
     // Metodo para imprimir texto normal
     private fun imprimirTextoNormal(contenedor: LinearLayout, texto: String) {
         val textView = TextView(this).apply {
-            text = texto
             textSize = 18f
             setPadding(16, 8, 16, 8)
             setTextColor(Color.BLACK)
         }
+
+        // Verificar si el texto contiene el símbolo '✠'
+        if (texto.contains("✠")) {
+            val spannable = SpannableString(texto)
+            val startIndex = texto.indexOf("✠")
+            val endIndex = startIndex + 1 // "✠" ocupa 1 caracter
+
+            // Aplicar color rubrica al símbolo
+            spannable.setSpan(
+                android.text.style.ForegroundColorSpan(resources.getColor(R.color.rubrica, null)),
+                startIndex,
+                endIndex,
+                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+
+            textView.text = spannable
+        } else {
+            textView.text = texto
+        }
+
         contenedor.addView(textView)
     }
 
@@ -153,7 +200,7 @@ class DisplayActivity : AppCompatActivity() {
             textSize = 18f
             setTypeface(null, Typeface.ITALIC)
             setTextColor(resources.getColor(R.color.rubrica, null)) // Asegúrate de tener este color en `colors.xml`
-            setPadding(16, 8, 16, 95)
+            setPadding(16, 8, 16, 8)
             // Centrar texto horizontalmente
             gravity = Gravity.CENTER
         }

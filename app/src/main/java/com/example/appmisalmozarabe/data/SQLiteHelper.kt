@@ -170,24 +170,55 @@ class SQLiteHelper(private val context: Context) {
      * Para consultas SQL con parámetros repetidos.
      */
     inline fun <reified T> T.repeatInSQLParams(times: Int): Array<T> = Array(times) { this }
+
     /*
-    Devuelve los textos del praelegendum asociados a fiesta o tiempo en orden
-     */
-    fun getPraelegendum(idFiesta: String?, idTiempo: String?): List<TextoLiturgico> {
+    Devuelve los textos litúrgicos asociados a una fiesta o tiempo litúrgico en orden
+    @param idFiesta ID de la fiesta litúrgica (puede ser null)
+    @param idTiempo ID del tiempo litúrgico (puede ser null)
+    @param from Nombre de la tabla de donde obtener los textos
+    @return Lista de textos litúrgicos ordenados
+    */
+    fun getTextos(idFiesta: String?, idTiempo: String?, from: String): List<TextoLiturgico> {
         val lista = mutableListOf<TextoLiturgico>()
 
-        // Preparamos los parámetros usando la función de extensión
-        val params = idFiesta.repeatInSQLParams(2) + arrayOf(idTiempo)
+        // Validación básica
+        if (from.isBlank()) return emptyList()
 
-        val cursor = database?.rawQuery(
-            """
+        // Preparamos los parámetros
+        val params = mutableListOf<String>().apply {
+            if (idFiesta != null) {
+                add(idFiesta)
+                add(idFiesta)
+            }
+            if (idTiempo != null) {
+                add(idTiempo)
+            }
+        }.toTypedArray()
+
+        // Construimos la consulta dinámicamente
+        val whereClause = buildString {
+            if (idFiesta != null) {
+                append("(FIESTA = ? OR FIESTA IS NULL OR FIESTA2 = ?)")
+                if (idTiempo != null) {
+                    append(" OR ")
+                }
+            }
+            if (idTiempo != null) {
+                append("TIEMPO = ?")
+            }
+            if (idFiesta == null && idTiempo == null) {
+                append("1") // Devuelve todos si no hay filtros
+            }
+        }
+
+        val query = """
         SELECT TIPO, TEXTO
-        FROM PRAELEGENDUM
-        WHERE FIESTA = ? OR FIESTA IS NULL OR FIESTA2 = ? OR TIEMPO = ? 
+        FROM $from
+        WHERE $whereClause
         ORDER BY ORDEN
-        """.trimIndent(),
-            params
-        )
+    """.trimIndent()
+
+        val cursor = database?.rawQuery(query, params)
 
         cursor?.use {
             while (it.moveToNext()) {
