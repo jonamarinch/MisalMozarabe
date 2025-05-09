@@ -70,14 +70,19 @@
         <!-- Botón principal -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnContinue"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:layout_marginStart="24dp"
+            android:layout_marginEnd="24dp"
             android:text="Continuar"
-            style="@style/Widget.Material3.Button"
-            android:layout_marginTop="24dp"
-            app:cornerRadius="16dp"
+            android:gravity="center"
             app:icon="@drawable/ic_navigate_next"
-            app:iconGravity="textStart" />
+            app:iconGravity="start"
+            app:iconPadding="8dp"
+            style="@style/Widget.Material3.Button"
+            app:cornerRadius="16dp"
+            android:textAlignment="center" />
     </LinearLayout>
 
     <!-- Botón flotante -->

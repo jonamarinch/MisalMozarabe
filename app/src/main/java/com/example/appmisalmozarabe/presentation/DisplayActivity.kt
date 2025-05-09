@@ -4,12 +4,16 @@ import android.content.Intent
 import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Bundle
+import android.text.InputType
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
 import android.view.Gravity
+import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
+import android.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.example.appmisalmozarabe.R
@@ -88,6 +92,9 @@ class DisplayActivity : AppCompatActivity() {
                 // Cargar textos IncipitMissa
                 textosCargados = dbHelper.getTextos(seleccion?.first, seleccion?.second, "INCIPITMISSA")
                 imprimirTextosLiturgicos(contenedor, textosCargados)
+                // Cargar textos OratioAdmonitionis
+                textosCargados = dbHelper.getTextos(seleccion?.first, seleccion?.second, "ORATIOADMONITIONIS")
+                imprimirTextosLiturgicos(contenedor, textosCargados)
             }
             "NAV" -> {
                 // Acción para Navidad
@@ -132,6 +139,39 @@ class DisplayActivity : AppCompatActivity() {
             }
             startActivity(intent)
             finish() // Cierra la actividad actual
+        }
+
+        // Botón para editar
+        val btnEdit = findViewById<MaterialButton>(R.id.btnEdit)
+
+        // Contraseña establecida en la BD
+        val contra = dbHelper.getContrasenna()
+
+        // Listener para el botón para editar
+        btnEdit.setOnClickListener {
+            // Crear campo de texto para la contraseña
+            val input = EditText(this).apply {
+                inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+                hint = "Contraseña"
+            }
+
+            // Mostrar diálogo
+            AlertDialog.Builder(this)
+                .setTitle("Acceso restringido")
+                .setMessage("Introduce la contraseña de administrador para continuar.")
+                .setView(input)
+                .setPositiveButton("Aceptar") { _, _ ->
+                    val enteredPassword = input.text.toString()
+                    if (enteredPassword == contra) {
+                        Toast.makeText(this, "Acceso concedido", Toast.LENGTH_SHORT).show()
+                        // Aquí puedes llamar a la función que active edición
+                        habilitarModoEdicion()
+                    } else {
+                        Toast.makeText(this, "Contraseña incorrecta", Toast.LENGTH_SHORT).show()
+                    }
+                }
+                .setNegativeButton("Cancelar", null)
+                .show()
         }
     }
 
@@ -282,5 +322,10 @@ class DisplayActivity : AppCompatActivity() {
             typeface = Typeface.DEFAULT_BOLD
         }
         contenedor.addView(textView)
+    }
+
+    // Metodo para cambiar a modo edición
+    private fun habilitarModoEdicion() {
+
     }
 }

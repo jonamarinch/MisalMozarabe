@@ -78,6 +78,23 @@ class SQLiteHelper(private val context: Context) {
     }
 
     /*
+    Devuelve la contraseña establecida
+    */
+    fun getContrasenna(): String? {
+        val cursor = database?.rawQuery(
+            "SELECT CLAVE FROM CONFIG WHERE ID = 1", null
+        )
+
+        cursor?.use {
+            if (it.moveToFirst()) {
+                return it.getString(0)
+            }
+        }
+
+        return null
+    }
+
+    /*
     Devuelve todos los tiempos litúrgicos
     */
     fun getAllTiempos(): List<String> {

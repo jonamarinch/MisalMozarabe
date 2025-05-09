@@ -21,17 +21,43 @@
             android:orientation="vertical" />
     </ScrollView>
 
-    <!-- Botón flotante abajo centrado -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnBack"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:id="@+id/botoneraInferior"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Volver"
-        style="@style/Widget.Material3.Button"
-        android:layout_gravity="bottom|center_horizontal"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_gravity="bottom"
         android:layout_marginBottom="16dp"
-        app:cornerRadius="16dp"
-        app:icon="@drawable/ic_navigate_back"
-        app:iconGravity="textStart" />
+        android:paddingHorizontal="16dp"
+        android:weightSum="2">
 
+        <!-- Botón para volver -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnBack"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Volver"
+            android:gravity="center"
+            app:icon="@drawable/ic_navigate_back"
+            app:iconGravity="start"
+            app:iconPadding="8dp"
+            style="@style/Widget.Material3.Button"
+            app:cornerRadius="16dp"
+            android:layout_marginEnd="8dp"
+            android:textAlignment="center" />
+
+        <!-- Botón para editar -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnEdit"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Editar"
+            style="@style/Widget.Material3.Button"
+            app:cornerRadius="16dp"
+            app:backgroundTint="#6E6E6E"
+            android:layout_marginStart="8dp" />
+    </LinearLayout>
 </FrameLayout>
