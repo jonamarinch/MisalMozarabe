@@ -5,6 +5,7 @@ import android.database.sqlite.SQLiteDatabase
 import android.util.Log
 import java.io.FileOutputStream
 import com.example.appmisalmozarabe.domain.model.TextoLiturgico
+import java.security.MessageDigest
 
 class SQLiteHelper(private val context: Context) {
 
@@ -78,20 +79,35 @@ class SQLiteHelper(private val context: Context) {
     }
 
     /*
-    Devuelve la contraseña establecida
-    */
-    fun getContrasenna(): String? {
+     * Comprueba si la contraseña introducida es correcta comparando su hash con el almacenado.
+     */
+    fun verificarContrasenna(input: String): Boolean {
         val cursor = database?.rawQuery(
             "SELECT CLAVE FROM CONFIG WHERE ID = 1", null
         )
 
         cursor?.use {
             if (it.moveToFirst()) {
-                return it.getString(0)
+                val hashGuardado = it.getString(0).trim() // Se asegura de quitar espacios accidentales
+                val hashInput = hashSha256(input)
+                // 🔍 Debug de comparación
+                Log.d("HashDebug", "Input: $hashInput")
+                Log.d("HashDebug", "Guardado: $hashGuardado")
+                return hashInput == hashGuardado
             }
         }
 
-        return null
+        return false
+    }
+
+    /*
+     * Genera el hash SHA-256 de un String dado (por ejemplo, una contraseña).
+     * Este valor se puede usar para comparar con el almacenado en la base de datos.
+     */
+    private fun hashSha256(input: String): String {
+        val digest = MessageDigest.getInstance("SHA-256")
+        val hashBytes = digest.digest(input.toByteArray(Charsets.UTF_8))
+        return hashBytes.joinToString("") { "%02x".format(it) }
     }
 
     /*

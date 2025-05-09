@@ -144,9 +144,6 @@ class DisplayActivity : AppCompatActivity() {
         // Botón para editar
         val btnEdit = findViewById<MaterialButton>(R.id.btnEdit)
 
-        // Contraseña establecida en la BD
-        val contra = dbHelper.getContrasenna()
-
         // Listener para el botón para editar
         btnEdit.setOnClickListener {
             // Crear campo de texto para la contraseña
@@ -162,7 +159,7 @@ class DisplayActivity : AppCompatActivity() {
                 .setView(input)
                 .setPositiveButton("Aceptar") { _, _ ->
                     val enteredPassword = input.text.toString()
-                    if (enteredPassword == contra) {
+                    if (dbHelper.verificarContrasenna(enteredPassword)) {
                         Toast.makeText(this, "Acceso concedido", Toast.LENGTH_SHORT).show()
                         // Aquí puedes llamar a la función que active edición
                         habilitarModoEdicion()
