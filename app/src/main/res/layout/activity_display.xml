@@ -48,16 +48,33 @@
             android:layout_marginEnd="8dp"
             android:textAlignment="center" />
 
-        <!-- Botón para editar -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnEdit"
+        <!-- Contenedor para botón Editar/Guardar en misma posición -->
+        <FrameLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Editar"
-            style="@style/Widget.Material3.Button"
-            app:cornerRadius="16dp"
-            app:backgroundTint="#6E6E6E"
-            android:layout_marginStart="8dp" />
+            android:layout_marginStart="8dp">
+
+            <!-- Botón para editar -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnEdit"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Editar"
+                style="@style/Widget.Material3.Button"
+                app:cornerRadius="16dp"
+                app:backgroundTint="#6E6E6E" />
+
+            <!-- Botón para guardar -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSave"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Guardar cambios"
+                style="@style/Widget.Material3.Button"
+                app:cornerRadius="16dp"
+                app:backgroundTint="#388E3C"
+                android:visibility="gone" />
+        </FrameLayout>
     </LinearLayout>
 </FrameLayout>

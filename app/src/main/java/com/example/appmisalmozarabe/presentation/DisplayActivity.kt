@@ -14,6 +14,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import android.app.AlertDialog
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.example.appmisalmozarabe.R
@@ -22,6 +23,10 @@ import com.example.appmisalmozarabe.data.SQLiteHelper
 import com.example.appmisalmozarabe.domain.model.TextoLiturgico
 
 class DisplayActivity : AppCompatActivity() {
+    // Lista para recoger todos los campos EditText mostrados en modo lectura y en modo edicion
+    val textosControl = mutableListOf<Triple<String, String, String>>() // (tabla, original, nuevo)
+    // Lista para recoger todos los campos EditText mostrados en modo edición
+    val textosEditados= mutableListOf<EditText>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,6 +36,8 @@ class DisplayActivity : AppCompatActivity() {
 
         // Recuperar datos del intent
         val nombreFiesta = intent.getStringExtra("nombreFiesta") ?: "Fiesta desconocida"
+        // Boolean para registrar el modo actual (Lectura o edición)
+        var enModoEdicion = intent.getBooleanExtra("modoEdicion", false)
 
         // Crear y añadir TextView para el título de la fiesta
         val tituloTextView = TextView(this).apply {
@@ -67,34 +74,34 @@ class DisplayActivity : AppCompatActivity() {
 
                 // Cargar textos Praelegendum
                 var textosCargados = dbHelper.getTextos(seleccion?.first, seleccion?.second, "PRAELEGENDUM")
-                imprimirTextosLiturgicos(contenedor, textosCargados)
+                imprimirTextosLiturgicos(contenedor, textosCargados, enModoEdicion, "PRAELEGENDUM")
                 // Cargar textos PostGloriam
                 textosCargados = dbHelper.getTextos(seleccion?.first, seleccion?.second, "POSTGLORIAM")
-                imprimirTextosLiturgicos(contenedor, textosCargados)
+                imprimirTextosLiturgicos(contenedor, textosCargados, enModoEdicion, "POSTGLORIAM")
                 // Cargar textos Profecias
                 textosCargados = dbHelper.getTextos(seleccion?.first, seleccion?.second, "PROFECIA")
-                imprimirTextosLiturgicos(contenedor, textosCargados)
+                imprimirTextosLiturgicos(contenedor, textosCargados, enModoEdicion, "PROFECIA")
                 // Cargar textos Salmo
                 textosCargados = dbHelper.getTextos(seleccion?.first, seleccion?.second, "SALMO")
-                imprimirTextosLiturgicos(contenedor, textosCargados)
+                imprimirTextosLiturgicos(contenedor, textosCargados, enModoEdicion, "SALMO")
                 // Cargar textos Apostol
                 textosCargados = dbHelper.getTextos(seleccion?.first, seleccion?.second, "APOSTOL")
-                imprimirTextosLiturgicos(contenedor, textosCargados)
+                imprimirTextosLiturgicos(contenedor, textosCargados, enModoEdicion, "APOSTOL")
                 // Cargar textos Evangelio
                 textosCargados = dbHelper.getTextos(seleccion?.first, seleccion?.second, "EVANGELIO")
-                imprimirTextosLiturgicos(contenedor, textosCargados)
+                imprimirTextosLiturgicos(contenedor, textosCargados, enModoEdicion, "EVANGELIO")
                 // Cargar textos Laudes
                 textosCargados = dbHelper.getTextos(seleccion?.first, seleccion?.second, "LAUDES")
-                imprimirTextosLiturgicos(contenedor, textosCargados)
+                imprimirTextosLiturgicos(contenedor, textosCargados, enModoEdicion, "LAUDES")
                 // Cargar textos Sacrificium
                 textosCargados = dbHelper.getTextos(seleccion?.first, seleccion?.second, "SACRIFICIUM")
-                imprimirTextosLiturgicos(contenedor, textosCargados)
+                imprimirTextosLiturgicos(contenedor, textosCargados, enModoEdicion, "SACRIFICIUM")
                 // Cargar textos IncipitMissa
                 textosCargados = dbHelper.getTextos(seleccion?.first, seleccion?.second, "INCIPITMISSA")
-                imprimirTextosLiturgicos(contenedor, textosCargados)
+                imprimirTextosLiturgicos(contenedor, textosCargados, enModoEdicion, "INCIPITMISSA")
                 // Cargar textos OratioAdmonitionis
                 textosCargados = dbHelper.getTextos(seleccion?.first, seleccion?.second, "ORATIOADMONITIONIS")
-                imprimirTextosLiturgicos(contenedor, textosCargados)
+                imprimirTextosLiturgicos(contenedor, textosCargados, enModoEdicion, "ORATIOADMONITIONIS")
             }
             "NAV" -> {
                 // Acción para Navidad
@@ -104,7 +111,7 @@ class DisplayActivity : AppCompatActivity() {
 
                 // Cargar textos Praelegendum
                 var textosCargados = dbHelper.getTextos(seleccion?.first, seleccion?.second, "PRAELEGENDUM")
-                imprimirTextosLiturgicos(contenedor, textosCargados)
+                imprimirTextosLiturgicos(contenedor, textosCargados, enModoEdicion, "PRAELEGENDUM")
             }
             "CUA" -> {
                 // Acción para Cuaresma
@@ -144,6 +151,18 @@ class DisplayActivity : AppCompatActivity() {
         // Botón para editar
         val btnEdit = findViewById<MaterialButton>(R.id.btnEdit)
 
+        // Botón para guardar cambios
+        val btnSave = findViewById<MaterialButton>(R.id.btnSave)
+
+        // Controlar visibilidad de cada botón
+        if (enModoEdicion) {
+            btnEdit.visibility = View.GONE
+            btnSave.visibility = View.VISIBLE
+        } else {
+            btnEdit.visibility = View.VISIBLE
+            btnSave.visibility = View.GONE
+        }
+
         // Listener para el botón para editar
         btnEdit.setOnClickListener {
             // Crear campo de texto para la contraseña
@@ -152,177 +171,348 @@ class DisplayActivity : AppCompatActivity() {
                 hint = "Contraseña"
             }
 
-            // Mostrar diálogo
-            AlertDialog.Builder(this)
-                .setTitle("Acceso restringido")
-                .setMessage("Introduce la contraseña de administrador para continuar.")
-                .setView(input)
-                .setPositiveButton("Aceptar") { _, _ ->
-                    val enteredPassword = input.text.toString()
-                    if (dbHelper.verificarContrasenna(enteredPassword)) {
-                        Toast.makeText(this, "Acceso concedido", Toast.LENGTH_SHORT).show()
-                        // Aquí puedes llamar a la función que active edición
-                        habilitarModoEdicion()
-                    } else {
-                        Toast.makeText(this, "Contraseña incorrecta", Toast.LENGTH_SHORT).show()
+            val prefs = getSharedPreferences("prefs", MODE_PRIVATE)
+            if (prefs.getBoolean("adminAutenticado", false)) {
+                // Ya autenticado, pasar a modo edición directamente
+                recargarActividadModoEdit()
+                return@setOnClickListener
+            } else {
+                // Mostrar diálogo
+                AlertDialog.Builder(this)
+                    .setTitle("Acceso restringido")
+                    .setMessage("Introduce la contraseña de administrador para continuar.")
+                    .setView(input)
+                    .setPositiveButton("Aceptar") { _, _ ->
+                        val enteredPassword = input.text.toString()
+                        if (dbHelper.verificarContrasenna(enteredPassword)) {
+                            Toast.makeText(this, "Acceso concedido", Toast.LENGTH_SHORT).show()
+                            // Guardar acceso en SharedPreferences
+                            getSharedPreferences("prefs", MODE_PRIVATE).edit().putBoolean("adminAutenticado", true).apply()
+                            // Recargar en modo edición
+                            recargarActividadModoEdit()
+                        } else {
+                            Toast.makeText(this, "Contraseña incorrecta", Toast.LENGTH_SHORT).show()
+                        }
                     }
+                    .setNegativeButton("Cancelar", null)
+                    .show()
+            }
+        }
+
+        // Listener para el botón para guardar cambios
+        btnSave.setOnClickListener {
+            val dbHelper = SQLiteHelper(this)
+
+            if (textosControl.size != textosEditados.size) {
+                Toast.makeText(this, "Error: las listas de control y edición no coinciden", Toast.LENGTH_LONG).show()
+                return@setOnClickListener
+            }
+
+            for (i in textosControl.indices) {
+                val (tabla, textoOriginal, _) = textosControl[i]
+                val textoNuevo = textosEditados[i].text.toString()
+
+                // Evita updates innecesarios
+                if (textoNuevo != textoOriginal) {
+                    dbHelper.actualizarTextoPorContenido(tabla, textoOriginal, textoNuevo)
                 }
-                .setNegativeButton("Cancelar", null)
-                .show()
+
+                // Actualizar la lista de control (opcional, por si acaso)
+                textosControl[i] = Triple(tabla, textoOriginal, textoNuevo)
+            }
+            // Notificación de cambios guardados
+            Toast.makeText(this, "Cambios guardados", Toast.LENGTH_SHORT).show()
+            // Recargar en modo lectura
+            recargarActividadModoLect()
         }
     }
 
     // Metodo para manejar la impresión de textos litúrgicos
-    private fun imprimirTextosLiturgicos(contenedor: LinearLayout, textos: List<TextoLiturgico>) {
+    private fun imprimirTextosLiturgicos(contenedor: LinearLayout, textos: List<TextoLiturgico>, modoEdicion: Boolean, tabla: String) {
         for (texto in textos) {
             when (texto.tipo) {
-                0 -> imprimirTextoNormal(contenedor, texto.contenido)
-                1 -> imprimirRubrica(contenedor, texto.contenido)
-                2 -> imprimirSemiRubrica(contenedor, texto.contenido)
-                3 -> imprimirRubricaCentrada(contenedor, texto.contenido)
-                4 -> imprimirRubricaCentradaNegrita(contenedor, texto.contenido)
-                5 -> imprimirTextoPueblo(contenedor, texto.contenido)
-                6 -> imprimirTextoCoro(contenedor, texto.contenido)
-                else -> imprimirTextoNormal(contenedor, texto.contenido)
+                0 -> imprimirTextoNormal(contenedor, texto.contenido, modoEdicion, tabla)
+                1 -> imprimirRubrica(contenedor, texto.contenido, modoEdicion, tabla)
+                2 -> imprimirSemiRubrica(contenedor, texto.contenido, modoEdicion, tabla)
+                3 -> imprimirRubricaCentrada(contenedor, texto.contenido, modoEdicion, tabla)
+                4 -> imprimirRubricaCentradaNegrita(contenedor, texto.contenido, modoEdicion, tabla)
+                5 -> imprimirTextoPueblo(contenedor, texto.contenido, modoEdicion, tabla)
+                6 -> imprimirTextoCoro(contenedor, texto.contenido, modoEdicion, tabla)
+                else -> imprimirTextoNormal(contenedor, texto.contenido, modoEdicion, tabla)
             }
         }
     }
 
     // Metodo para imprimir texto normal
-    private fun imprimirTextoNormal(contenedor: LinearLayout, texto: String) {
-        val textView = TextView(this).apply {
-            textSize = 18f
-            setPadding(16, 8, 16, 8)
-            setTextColor(Color.BLACK)
-        }
-
-        // Verificar si el texto contiene el símbolo '✠'
-        if (texto.contains("✠")) {
-            val spannable = SpannableString(texto)
-            val startIndex = texto.indexOf("✠")
-            val endIndex = startIndex + 1 // "✠" ocupa 1 caracter
-
-            // Aplicar color rubrica al símbolo
-            spannable.setSpan(
-                android.text.style.ForegroundColorSpan(resources.getColor(R.color.rubrica, null)),
-                startIndex,
-                endIndex,
-                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-            )
-
-            textView.text = spannable
+    private fun imprimirTextoNormal(contenedor: LinearLayout, texto: String, modoEdicion: Boolean, tabla: String) {
+        if (modoEdicion) {
+            // En modo edición, usamos EditText
+            val editText = EditText(this).apply {
+                setText(texto)
+                textSize = 18f
+                setPadding(16, 8, 16, 8)
+                setTextColor(Color.BLACK)
+                background = null // Quitar fondo para que parezca un TextView
+            }
+            contenedor.addView(editText)
+            textosEditados.add(editText) // Guardamos para acceder luego si es necesario
+            textosControl.add(Triple(tabla, texto, "")) // aún no sabemos el valor nuevo
         } else {
-            textView.text = texto
-        }
+            // En modo lectura, usamos TextView
+            val textView = TextView(this).apply {
+                textSize = 18f
+                setPadding(16, 8, 16, 8)
+                setTextColor(Color.BLACK)
+            }
 
-        contenedor.addView(textView)
+            // Verificar si el texto contiene el símbolo '✠'
+            if (texto.contains("✠")) {
+                val spannable = SpannableString(texto)
+                val startIndex = texto.indexOf("✠")
+                val endIndex = startIndex + 1 // "✠" ocupa 1 caracter
+
+                // Aplicar color rubrica al símbolo
+                spannable.setSpan(
+                    android.text.style.ForegroundColorSpan(resources.getColor(R.color.rubrica, null)),
+                    startIndex,
+                    endIndex,
+                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
+
+                textView.text = spannable
+            } else {
+                textView.text = texto
+            }
+
+            contenedor.addView(textView)
+        }
     }
 
     // Metodo para imprimir rubrica
-    private fun imprimirRubrica(contenedor: LinearLayout, texto: String) {
-        val textView = TextView(this).apply {
-            text = texto
-            textSize = 18f
-            setTypeface(null, Typeface.ITALIC)
-            setTextColor(resources.getColor(R.color.rubrica, null)) // Asegúrate de tener este color en `colors.xml`
-            setPadding(16, 8, 16, 8)
+    private fun imprimirRubrica(contenedor: LinearLayout, texto: String, modoEdicion: Boolean, tabla: String) {
+        if (modoEdicion) {
+            // En modo edición, usamos EditText con estilo de rúbrica
+            val editText = EditText(this).apply {
+                setText(texto)
+                textSize = 18f
+                setTypeface(null, Typeface.ITALIC)
+                setTextColor(resources.getColor(R.color.rubrica, null)) // Asegúrate de tener este color en `colors.xml`
+                setPadding(16, 8, 16, 8)
+                background = null // Sin fondo para simular TextView
+            }
+            contenedor.addView(editText)
+            textosEditados.add(editText) // Guardamos referencia si queremos recuperar contenido luego
+            textosControl.add(Triple(tabla, texto, "")) // aún no sabemos el valor nuevo
+        } else {
+            // En modo normal, usamos TextView
+            val textView = TextView(this).apply {
+                text = texto
+                textSize = 18f
+                setTypeface(null, Typeface.ITALIC)
+                setTextColor(resources.getColor(R.color.rubrica, null)) // Asegúrate de tener este color en `colors.xml`
+                setPadding(16, 8, 16, 8)
+            }
+            contenedor.addView(textView)
         }
-        contenedor.addView(textView)
     }
 
     // Metodo para imprimir rubrica centrada
-    private fun imprimirRubricaCentrada(contenedor: LinearLayout, texto: String) {
-        val textView = TextView(this).apply {
-            text = texto
-            textSize = 18f
-            setTypeface(null, Typeface.ITALIC)
-            setTextColor(resources.getColor(R.color.rubrica, null)) // Asegúrate de tener este color en `colors.xml`
-            setPadding(16, 8, 16, 8)
-            // Centrar texto horizontalmente
-            gravity = Gravity.CENTER
+    private fun imprimirRubricaCentrada(contenedor: LinearLayout, texto: String, modoEdicion: Boolean, tabla: String) {
+        if (modoEdicion) {
+            // En modo edición, usamos EditText con estilo de rúbrica centrada
+            val editText = EditText(this).apply {
+                setText(texto)
+                textSize = 18f
+                setTypeface(null, Typeface.ITALIC)
+                setTextColor(resources.getColor(R.color.rubrica, null)) // Asegúrate de tener este color en `colors.xml`
+                setPadding(16, 8, 16, 8)
+                gravity = Gravity.CENTER // Centrar texto horizontalmente
+                background = null // Sin fondo para simular TextView
+            }
+            contenedor.addView(editText)
+            textosEditados.add(editText) // Guardamos referencia si queremos recuperar contenido luego
+            textosControl.add(Triple(tabla, texto, "")) // aún no sabemos el valor nuevo
+        } else {
+            // En modo normal, usamos TextView
+            val textView = TextView(this).apply {
+                text = texto
+                textSize = 18f
+                setTypeface(null, Typeface.ITALIC)
+                setTextColor(resources.getColor(R.color.rubrica, null)) // Asegúrate de tener este color en `colors.xml`
+                setPadding(16, 8, 16, 8)
+                // Centrar texto horizontalmente
+                gravity = Gravity.CENTER
+            }
+            contenedor.addView(textView)
         }
-        contenedor.addView(textView)
     }
 
     // Metodo para imprimir rubrica centrada y en negrita
-    private fun imprimirRubricaCentradaNegrita(contenedor: LinearLayout, texto: String) {
-        val textView = TextView(this).apply {
-            text = texto
-            textSize = 18f
-            setTypeface(null, Typeface.BOLD)
-            setTextColor(resources.getColor(R.color.rubrica, null)) // Asegúrate de tener este color en `colors.xml`
-            setPadding(16, 8, 16, 8)
-            // Centrar texto horizontalmente
-            gravity = Gravity.CENTER
+    private fun imprimirRubricaCentradaNegrita(contenedor: LinearLayout, texto: String, modoEdicion: Boolean, tabla: String) {
+        if (modoEdicion) {
+            // En modo edición, usamos EditText con estilo centrado y en negrita
+            val editText = EditText(this).apply {
+                setText(texto)
+                textSize = 18f
+                setTypeface(null, Typeface.BOLD)
+                setTextColor(resources.getColor(R.color.rubrica, null)) // Asegúrate de tener este color en `colors.xml`
+                setPadding(16, 8, 16, 8)
+                gravity = Gravity.CENTER // Centrar texto horizontalmente
+                background = null // Sin fondo para parecerse a TextView
+            }
+            contenedor.addView(editText)
+            textosEditados.add(editText) // Guardamos referencia si queremos recuperar contenido luego
+            textosControl.add(Triple(tabla, texto, "")) // aún no sabemos el valor nuevo
+        } else {
+            // En modo normal, usamos TextView
+            val textView = TextView(this).apply {
+                text = texto
+                textSize = 18f
+                setTypeface(null, Typeface.BOLD)
+                setTextColor(resources.getColor(R.color.rubrica, null)) // Asegúrate de tener este color en `colors.xml`
+                setPadding(16, 8, 16, 8)
+                // Centrar texto horizontalmente
+                gravity = Gravity.CENTER
+            }
+            contenedor.addView(textView)
         }
-        contenedor.addView(textView)
     }
 
+
     // Metodo para imprimir rubrica (al principio) y texto normal
-    private fun imprimirSemiRubrica(contenedor: LinearLayout, texto: String) {
+    private fun imprimirSemiRubrica(contenedor: LinearLayout, texto: String, modoEdicion: Boolean, tabla: String) {
         // Buscar el índice del primer punto o dos puntos
         val indiceFinRubrica = texto.indexOfFirst { it == '.' || it == ':' }
         // Si no se encuentra punto ni dos puntos, tratamos todo como rubrica
         val rubricaHasta = if (indiceFinRubrica != -1) indiceFinRubrica + 1 else texto.length
 
-        val spannable = android.text.SpannableString(texto)
+        if (modoEdicion) {
+            // En modo edición, usamos EditText plano (sin formato parcial)
+            val editText = EditText(this).apply {
+                setText(texto)
+                textSize = 18f
+                setPadding(16, 8, 16, 8)
+                setTextColor(Color.BLACK)
+                background = null // Sin fondo
+            }
+            contenedor.addView(editText)
+            textosEditados.add(editText) // Guardamos referencia si queremos recuperar contenido luego
+            textosControl.add(Triple(tabla, texto, "")) // aún no sabemos el valor nuevo
+        } else {
+            // En modo lectura, aplicamos estilos separados con Spannable
+            val spannable = android.text.SpannableString(texto)
 
-        // Aplicar estilo a la parte de la rúbrica
-        spannable.setSpan(
-            android.text.style.StyleSpan(Typeface.ITALIC),
-            0,
-            rubricaHasta,
-            android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-        )
-        spannable.setSpan(
-            android.text.style.ForegroundColorSpan(resources.getColor(R.color.rubrica, null)),
-            0,
-            rubricaHasta,
-            android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-        )
-        // El resto del texto (opcional: puedes aplicar estilo "normal" explícitamente si quieres)
-        spannable.setSpan(
-            android.text.style.ForegroundColorSpan(resources.getColor(R.color.black, null)),
-            rubricaHasta,
-            texto.length,
-            android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-        )
+            // Aplicar estilo a la parte de la rúbrica
+            spannable.setSpan(
+                android.text.style.StyleSpan(Typeface.ITALIC),
+                0,
+                rubricaHasta,
+                android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+            spannable.setSpan(
+                android.text.style.ForegroundColorSpan(resources.getColor(R.color.rubrica, null)),
+                0,
+                rubricaHasta,
+                android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
 
-        val textView = TextView(this).apply {
-            text = spannable
-            textSize = 18f
-            setPadding(16, 8, 16, 8)
+            // El resto del texto (opcional: puedes aplicar estilo "normal" explícitamente si quieres)
+            spannable.setSpan(
+                android.text.style.ForegroundColorSpan(resources.getColor(R.color.black, null)),
+                rubricaHasta,
+                texto.length,
+                android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+
+            val textView = TextView(this).apply {
+                text = spannable
+                textSize = 18f
+                setPadding(16, 8, 16, 8)
+            }
+
+            contenedor.addView(textView)
         }
-
-        contenedor.addView(textView)
     }
 
     // Metodo para imprimir texto del pueblo
-    private fun imprimirTextoPueblo(contenedor: LinearLayout, texto: String) {
-        val textView = TextView(this).apply {
-            text = texto
-            textSize = 18f
-            setPadding(125, 8, 16, 8)
-            setTextColor(Color.BLACK)
-            typeface = Typeface.DEFAULT_BOLD
+    private fun imprimirTextoPueblo(contenedor: LinearLayout, texto: String, modoEdicion: Boolean, tabla: String) {
+        if (modoEdicion) {
+            // En modo edición, usamos EditText con estilo del pueblo
+            val editText = EditText(this).apply {
+                setText(texto)
+                textSize = 18f
+                setPadding(125, 8, 16, 8)
+                setTextColor(Color.BLACK)
+                typeface = Typeface.DEFAULT_BOLD
+                background = null // Sin fondo para simular TextView
+            }
+            contenedor.addView(editText)
+            textosEditados.add(editText) // Guardamos referencia si queremos recuperar contenido luego
+            textosControl.add(Triple(tabla, texto, "")) // aún no sabemos el valor nuevo
+        } else {
+            // En modo normal, usamos TextView
+            val textView = TextView(this).apply {
+                text = texto
+                textSize = 18f
+                setPadding(125, 8, 16, 8)
+                setTextColor(Color.BLACK)
+                typeface = Typeface.DEFAULT_BOLD
+            }
+            contenedor.addView(textView)
         }
-        contenedor.addView(textView)
     }
 
     // Metodo para imprimir texto del coro
-    private fun imprimirTextoCoro(contenedor: LinearLayout, texto: String) {
-        val textView = TextView(this).apply {
-            text = texto
-            textSize = 18f
-            setPadding(16, 8, 16, 8)
-            setTextColor(Color.BLACK)
-            typeface = Typeface.DEFAULT_BOLD
+    private fun imprimirTextoCoro(contenedor: LinearLayout, texto: String, modoEdicion: Boolean, tabla: String) {
+        if (modoEdicion) {
+            // En modo edición, usamos EditText con estilo del coro
+            val editText = EditText(this).apply {
+                setText(texto)
+                textSize = 18f
+                setPadding(16, 8, 16, 8)
+                setTextColor(Color.BLACK)
+                typeface = Typeface.DEFAULT_BOLD
+                background = null // Sin fondo para simular TextView
+            }
+            contenedor.addView(editText)
+            textosEditados.add(editText) // Guardamos referencia si queremos recuperar contenido luego
+            textosControl.add(Triple(tabla, texto, "")) // aún no sabemos el valor nuevo
+        } else {
+            // En modo normal, usamos TextView
+            val textView = TextView(this).apply {
+                text = texto
+                textSize = 18f
+                setPadding(16, 8, 16, 8)
+                setTextColor(Color.BLACK)
+                typeface = Typeface.DEFAULT_BOLD
+            }
+            contenedor.addView(textView)
         }
-        contenedor.addView(textView)
     }
+
 
     // Metodo para cambiar a modo edición
-    private fun habilitarModoEdicion() {
-
+    private fun recargarActividadModoEdit() {
+        val intent = intent
+        intent.putExtra("modoEdicion", true)
+        finish()
+        startActivity(intent)
     }
+
+    // Metodo para cambiar a modo lectura
+    private fun recargarActividadModoLect() {
+        val intent = intent
+        intent.putExtra("modoEdicion", false)
+        finish()
+        startActivity(intent)
+    }
+
+    /*
+    // Metodo onDestroy para controlar el cierre de la aplicación
+    override fun onDestroy() {
+        super.onDestroy()
+        // Borrar autenticación al cerrar la actividad
+        getSharedPreferences("prefs", MODE_PRIVATE).edit().remove("adminAutenticado").apply()
+    }
+    */
 }

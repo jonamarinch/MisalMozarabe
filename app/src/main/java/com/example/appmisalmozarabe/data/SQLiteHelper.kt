@@ -263,4 +263,17 @@ class SQLiteHelper(private val context: Context) {
 
         return lista
     }
+
+    /*
+    Metodo para actualizar los textos con las modificaciones del usuario
+     */
+    fun actualizarTextoPorContenido(tabla: String, textoOriginal: String, textoNuevo: String) {
+        val sql = """
+        UPDATE $tabla
+        SET TEXTO = ?
+        WHERE TEXTO = ?
+    """.trimIndent()
+
+        database?.execSQL(sql, arrayOf(textoNuevo, textoOriginal))
+    }
 }
