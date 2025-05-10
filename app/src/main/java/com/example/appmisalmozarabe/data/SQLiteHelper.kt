@@ -25,6 +25,10 @@ class SQLiteHelper(private val context: Context) {
         }
     }
 
+    /*
+    Esta función copia la base de datos predefinida desde la carpeta `assets` a la ubicación interna del dispositivo,
+    sólo si aún no existe. Esto permite usar una base de datos ya preparada en lugar de crearla desde cero.
+     */
     private fun copyDatabaseIfNeeded() {
         val dbPath = context.getDatabasePath(DB_NAME)
         if (!dbPath.exists()) {
@@ -52,6 +56,9 @@ class SQLiteHelper(private val context: Context) {
         }
     }
 
+    /*
+    Metodo para abrir la base de datos
+     */
     private fun openDatabase() {
         val dbPath = context.getDatabasePath(DB_NAME)
         try {
@@ -63,6 +70,9 @@ class SQLiteHelper(private val context: Context) {
         }
     }
 
+    /*
+    Metodo para comprobar que existen las tablas de fiestas y tiempos
+     */
     private fun verificarTablas() {
         val cursor = database?.rawQuery("SELECT name FROM sqlite_master WHERE type='table'", null)
         cursor?.use {

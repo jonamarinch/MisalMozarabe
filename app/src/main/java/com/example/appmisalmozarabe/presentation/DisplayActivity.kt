@@ -20,6 +20,7 @@ import androidx.core.content.ContextCompat
 import com.example.appmisalmozarabe.R
 import com.google.android.material.button.MaterialButton
 import com.example.appmisalmozarabe.data.SQLiteHelper
+import com.example.appmisalmozarabe.data.ComentarioManager
 import com.example.appmisalmozarabe.domain.model.TextoLiturgico
 
 class DisplayActivity : AppCompatActivity() {
@@ -28,6 +29,7 @@ class DisplayActivity : AppCompatActivity() {
     // Lista para recoger todos los campos EditText mostrados en modo edición
     val textosEditados= mutableListOf<EditText>()
 
+    // Indicaciones al crear la actividad
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_display) // Tu ScrollView con LinearLayout
@@ -66,6 +68,11 @@ class DisplayActivity : AppCompatActivity() {
 
         // Comprobar fiesta y tiempo
         val seleccion = dbHelper.getCodigoFiestaYTiempo(nombreFiesta)
+
+        // Cuando proceda, mostrar comentarios
+        if (seleccion?.first != null && enModoEdicion) {
+            mostrarComentarios(seleccion.first)
+        }
 
         // Controlar impresión de secciones por tiempos y fiestas
         when (seleccion?.second) {
@@ -177,18 +184,30 @@ class DisplayActivity : AppCompatActivity() {
                 recargarActividadModoEdit()
                 return@setOnClickListener
             } else {
+                // Crear campo de texto para la contraseña
+                val input = EditText(this).apply {
+                    inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+                    hint = "Contraseña"
+                    setPadding(32, 24, 32, 24) // Espaciado interno
+                }
+
+                // Contenedor para aplicar márgenes al input
+                val container = LinearLayout(this).apply {
+                    orientation = LinearLayout.VERTICAL
+                    setPadding(48, 32, 48, 0) // Padding exterior del contenedor
+                    addView(input)
+                }
+
                 // Mostrar diálogo
                 AlertDialog.Builder(this)
                     .setTitle("Acceso restringido")
                     .setMessage("Introduce la contraseña de administrador para continuar.")
-                    .setView(input)
+                    .setView(container)
                     .setPositiveButton("Aceptar") { _, _ ->
                         val enteredPassword = input.text.toString()
                         if (dbHelper.verificarContrasenna(enteredPassword)) {
                             Toast.makeText(this, "Acceso concedido", Toast.LENGTH_SHORT).show()
-                            // Guardar acceso en SharedPreferences
                             getSharedPreferences("prefs", MODE_PRIVATE).edit().putBoolean("adminAutenticado", true).apply()
-                            // Recargar en modo edición
                             recargarActividadModoEdit()
                         } else {
                             Toast.makeText(this, "Contraseña incorrecta", Toast.LENGTH_SHORT).show()
@@ -507,12 +526,114 @@ class DisplayActivity : AppCompatActivity() {
         startActivity(intent)
     }
 
-    /*
-    // Metodo onDestroy para controlar el cierre de la aplicación
-    override fun onDestroy() {
-        super.onDestroy()
-        // Borrar autenticación al cerrar la actividad
-        getSharedPreferences("prefs", MODE_PRIVATE).edit().remove("adminAutenticado").apply()
+    // Metodo para mostrar comentarios y opciones para el usuario relativas
+    private fun mostrarComentarios(idFiesta: String) {
+        val contenedor = findViewById<LinearLayout>(R.id.contenedorTextos)
+
+        // Contenedor visual para toda la sección de comentarios
+        val seccionComentarios = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(24, 48, 24, 48)
+            setBackgroundColor(Color.parseColor("#FFEFD5")) // Un color claro como papaya
+        }
+
+        // Título
+        val titulo = TextView(this).apply {
+            text = "Sección de Comentarios"
+            textSize = 20f
+            setTypeface(null, Typeface.BOLD)
+            setTextColor(Color.DKGRAY)
+            setPadding(0, 0, 0, 8)
+        }
+        seccionComentarios.addView(titulo)
+
+        // Subtítulo o ayuda
+        val subtitulo = TextView(this).apply {
+            text = "Aquí puedes ver o añadir notas personales relacionadas con esta fiesta."
+            textSize = 14f
+            setTextColor(Color.GRAY)
+            setPadding(0, 0, 0, 16)
+        }
+        seccionComentarios.addView(subtitulo)
+
+        val comentarios = ComentarioManager.obtenerComentarios(this, idFiesta)
+
+        if (comentarios.isEmpty()) {
+            val sinComentarios = TextView(this).apply {
+                text = "No hay comentarios añadidos aún."
+                textSize = 16f
+                setTextColor(Color.DKGRAY)
+                setPadding(0, 0, 0, 24)
+            }
+            seccionComentarios.addView(sinComentarios)
+        } else {
+            comentarios.forEachIndexed { index, comentario ->
+                val fila = LinearLayout(this).apply {
+                    orientation = LinearLayout.HORIZONTAL
+                    setPadding(8, 4, 8, 4)
+                    gravity = Gravity.CENTER_VERTICAL
+                }
+
+                val textView = TextView(this).apply {
+                    text = comentario
+                    textSize = 16f
+                    setTextColor(Color.BLACK)
+                    layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+                }
+
+                if (intent.getBooleanExtra("modoEdicion", false)) {
+                    val btnEliminar = MaterialButton(this).apply {
+                        text = "Eliminar"
+                        setOnClickListener {
+                            ComentarioManager.eliminarComentario(this@DisplayActivity, idFiesta, index)
+                            recargarActividadModoEdit()
+                        }
+                        setBackgroundColor(Color.RED)
+                        setTextColor(Color.WHITE)
+                        cornerRadius = 24
+                        textSize = 12f
+                    }
+                    fila.addView(textView)
+                    fila.addView(btnEliminar)
+                } else {
+                    fila.addView(textView)
+                }
+
+                seccionComentarios.addView(fila)
+            }
+        }
+
+        // Campo y botón para añadir comentario (solo en modo edición)
+        if (intent.getBooleanExtra("modoEdicion", false)) {
+            val campoComentario = EditText(this).apply {
+                hint = "Escribe un nuevo comentario..."
+                textSize = 16f
+                setPadding(16, 16, 16, 16)
+                setBackgroundColor(Color.WHITE)
+                setTextColor(Color.DKGRAY)
+            }
+
+            val btnAgregar = MaterialButton(this).apply {
+                text = "Añadir comentario"
+                setBackgroundColor(Color.parseColor("#388E3C"))
+                setTextColor(Color.WHITE)
+                cornerRadius = 32
+                setOnClickListener {
+                    val texto = campoComentario.text.toString().trim()
+                    if (texto.isNotEmpty()) {
+                        ComentarioManager.agregarComentario(this@DisplayActivity, idFiesta, texto)
+                        recargarActividadModoEdit()
+                    } else {
+                        Toast.makeText(context, "El comentario está vacío", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+
+            seccionComentarios.addView(campoComentario)
+            seccionComentarios.addView(btnAgregar)
+        }
+
+        // Añadir todo al contenedor principal
+        contenedor.addView(seccionComentarios)
     }
-    */
 }

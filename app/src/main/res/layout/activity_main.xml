@@ -82,10 +82,10 @@
             app:iconPadding="8dp"
             style="@style/Widget.Material3.Button"
             app:cornerRadius="16dp"
-            android:textAlignment="center" />
+            android:textAlignment="center"
+            app:backgroundTint="#9e8a83"/>
     </LinearLayout>
-
-    <!-- Botón flotante -->
+    <!-- Botón flotante
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab"
         android:layout_width="wrap_content"
@@ -93,5 +93,5 @@
         android:layout_gravity="bottom|end"
         android:layout_margin="16dp"
         android:contentDescription="Información"
-        app:srcCompat="@drawable/info_svgrepo_com" />
+        app:srcCompat="@drawable/info_svgrepo_com" /> -->
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
