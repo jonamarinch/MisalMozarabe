@@ -115,10 +115,6 @@ class DisplayActivity : AppCompatActivity() {
             }
             "DEP" -> {
                 // Acción para Después de Epifanía
-
-                // Cargar textos Praelegendum
-                var textosCargados = dbHelper.getTextos(seleccion?.first, seleccion?.second, "PRAELEGENDUM")
-                imprimirTextosLiturgicos(contenedor, textosCargados, enModoEdicion, "PRAELEGENDUM")
             }
             "CUA" -> {
                 // Acción para Cuaresma

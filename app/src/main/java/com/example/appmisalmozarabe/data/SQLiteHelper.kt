@@ -7,14 +7,17 @@ import java.io.FileOutputStream
 import com.example.appmisalmozarabe.domain.model.TextoLiturgico
 import java.security.MessageDigest
 
+// Clase de utilidad para manejar la base de datos SQLite del Misal Mozárabe
 class SQLiteHelper(private val context: Context) {
 
     companion object {
+        // Nombre del archivo de la base de datos incluida en assets
         private const val DB_NAME = "misal.db"
     }
 
     private var database: SQLiteDatabase? = null
 
+    // Inicializador: copia la base de datos si es necesario y la abre
     init {
         try {
             copyDatabaseIfNeeded()
@@ -26,8 +29,7 @@ class SQLiteHelper(private val context: Context) {
     }
 
     /*
-    Esta función copia la base de datos predefinida desde la carpeta `assets` a la ubicación interna del dispositivo,
-    sólo si aún no existe. Esto permite usar una base de datos ya preparada en lugar de crearla desde cero.
+     * Copia la base de datos desde 'assets' al almacenamiento interno si aún no existe.
      */
     private fun copyDatabaseIfNeeded() {
         val dbPath = context.getDatabasePath(DB_NAME)
@@ -45,8 +47,6 @@ class SQLiteHelper(private val context: Context) {
                     }
                 }
                 Log.d("SQLiteHelper", "Base de datos copiada desde assets.")
-                Log.d("SQLiteHelper", "Ruta final del archivo: ${dbPath.path}")
-                Log.d("SQLiteHelper", "Tamaño archivo: ${dbPath.length()} bytes")
             } catch (e: Exception) {
                 Log.e("SQLiteHelper", "Error al copiar la base de datos: ${e.message}")
                 throw e
@@ -57,7 +57,7 @@ class SQLiteHelper(private val context: Context) {
     }
 
     /*
-    Metodo para abrir la base de datos
+     * Abre la base de datos en modo lectura-escritura.
      */
     private fun openDatabase() {
         val dbPath = context.getDatabasePath(DB_NAME)
@@ -71,7 +71,7 @@ class SQLiteHelper(private val context: Context) {
     }
 
     /*
-    Metodo para comprobar que existen las tablas de fiestas y tiempos
+     * Verifica que existan las tablas básicas necesarias: TIEMPOS y FIESTAS.
      */
     private fun verificarTablas() {
         val cursor = database?.rawQuery("SELECT name FROM sqlite_master WHERE type='table'", null)
@@ -80,8 +80,6 @@ class SQLiteHelper(private val context: Context) {
             while (it.moveToNext()) {
                 tablas.add(it.getString(0))
             }
-            Log.d("SQLiteHelper", "Tablas encontradas en DB: $tablas")
-
             if (!tablas.contains("TIEMPOS") || !tablas.contains("FIESTAS")) {
                 throw IllegalStateException("Faltan tablas requeridas: TIEMPOS o FIESTAS")
             }
@@ -89,7 +87,7 @@ class SQLiteHelper(private val context: Context) {
     }
 
     /*
-     * Comprueba si la contraseña introducida es correcta comparando su hash con el almacenado.
+     * Verifica si la contraseña ingresada coincide con la almacenada (en formato hash SHA-256).
      */
     fun verificarContrasenna(input: String): Boolean {
         val cursor = database?.rawQuery(
@@ -98,11 +96,8 @@ class SQLiteHelper(private val context: Context) {
 
         cursor?.use {
             if (it.moveToFirst()) {
-                val hashGuardado = it.getString(0).trim() // Se asegura de quitar espacios accidentales
+                val hashGuardado = it.getString(0).trim()
                 val hashInput = hashSha256(input)
-                // 🔍 Debug de comparación
-                Log.d("HashDebug", "Input: $hashInput")
-                Log.d("HashDebug", "Guardado: $hashGuardado")
                 return hashInput == hashGuardado
             }
         }
@@ -111,8 +106,7 @@ class SQLiteHelper(private val context: Context) {
     }
 
     /*
-     * Genera el hash SHA-256 de un String dado (por ejemplo, una contraseña).
-     * Este valor se puede usar para comparar con el almacenado en la base de datos.
+     * Devuelve el hash SHA-256 de un texto (usado para proteger contraseñas).
      */
     private fun hashSha256(input: String): String {
         val digest = MessageDigest.getInstance("SHA-256")
@@ -121,8 +115,8 @@ class SQLiteHelper(private val context: Context) {
     }
 
     /*
-    Devuelve todos los tiempos litúrgicos
-    */
+     * Devuelve todos los nombres de los tiempos litúrgicos en orden.
+     */
     fun getAllTiempos(): List<String> {
         val list = mutableListOf<String>()
         val cursor = database?.rawQuery("SELECT NOMBRE FROM TIEMPOS ORDER BY ORDEN", null)
@@ -135,7 +129,7 @@ class SQLiteHelper(private val context: Context) {
     }
 
     /*
-    Devuelve las fiestas asociadas a un tiempo litúrgico dado por su nombre
+     * Devuelve los nombres de las fiestas correspondientes a un tiempo litúrgico.
      */
     fun getFiestasPorTiempo(nombreTiempo: String): List<String> {
         val list = mutableListOf<String>()
@@ -158,13 +152,16 @@ class SQLiteHelper(private val context: Context) {
         return list
     }
 
+    /*
+     * Cierra la conexión con la base de datos.
+     */
     fun close() {
         database?.close()
     }
 
     /*
-    Devuelve el nombre del tiempo al recibir el nombre de una fiesta
-    */
+     * Dado el nombre de una fiesta, devuelve el nombre del tiempo litúrgico al que pertenece.
+     */
     fun getTiempoFromFiesta(nombreFiesta: String): String? {
         val cursor = database?.rawQuery(
             """
@@ -177,8 +174,7 @@ class SQLiteHelper(private val context: Context) {
 
         cursor?.use {
             if (it.moveToFirst()) {
-                val nomTiempo = it.getString(0)
-                return nomTiempo
+                return it.getString(0)
             }
         }
 
@@ -186,8 +182,8 @@ class SQLiteHelper(private val context: Context) {
     }
 
     /*
-    Devuelve el código de fiesta y de tiempo al recibir el nombre de una fiesta
-    */
+     * Devuelve el par (ID de fiesta, ID de tiempo) correspondiente a un nombre de fiesta.
+     */
     fun getCodigoFiestaYTiempo(nombreFiesta: String): Pair<String, String>? {
         val cursor = database?.rawQuery(
             """
@@ -199,9 +195,7 @@ class SQLiteHelper(private val context: Context) {
 
         cursor?.use {
             if (it.moveToFirst()) {
-                val idFiesta = it.getString(0)
-                val idTiempo = it.getString(1)
-                return Pair(idFiesta, idTiempo)
+                return Pair(it.getString(0), it.getString(1))
             }
         }
 
@@ -209,25 +203,20 @@ class SQLiteHelper(private val context: Context) {
     }
 
     /*
-     * Duplica un parámetro [n] veces en un Array.
-     * Para consultas SQL con parámetros repetidos.
+     * Método de utilidad para generar un array con un valor repetido varias veces.
+     * Útil para consultas SQL con múltiples parámetros iguales.
      */
     inline fun <reified T> T.repeatInSQLParams(times: Int): Array<T> = Array(times) { this }
 
     /*
-    Devuelve los textos litúrgicos asociados a una fiesta o tiempo litúrgico en orden
-    @param idFiesta ID de la fiesta litúrgica (puede ser null)
-    @param idTiempo ID del tiempo litúrgico (puede ser null)
-    @param from Nombre de la tabla de donde obtener los textos
-    @return Lista de textos litúrgicos ordenados
-    */
+     * Recupera los textos litúrgicos filtrados por fiesta o tiempo, desde una tabla concreta.
+     * Si no se pasa ningún filtro, devuelve todos los textos de la tabla.
+     */
     fun getTextos(idFiesta: String?, idTiempo: String?, from: String): List<TextoLiturgico> {
         val lista = mutableListOf<TextoLiturgico>()
 
-        // Validación básica
         if (from.isBlank()) return emptyList()
 
-        // Preparamos los parámetros
         val params = mutableListOf<String>().apply {
             if (idFiesta != null) {
                 add(idFiesta)
@@ -238,19 +227,16 @@ class SQLiteHelper(private val context: Context) {
             }
         }.toTypedArray()
 
-        // Construimos la consulta dinámicamente
         val whereClause = buildString {
             if (idFiesta != null) {
-                append("(FIESTA = ? OR FIESTA IS NULL OR FIESTA2 = ?)")
-                if (idTiempo != null) {
-                    append(" OR ")
-                }
+                append("(FIESTA = ? OR FIESTA IS NULL OR FIESTA2 = ? OR FIESTA3 = ? OR FIESTA4 = ?)")
+                if (idTiempo != null) append(" OR ")
             }
             if (idTiempo != null) {
                 append("TIEMPO = ?")
             }
             if (idFiesta == null && idTiempo == null) {
-                append("1") // Devuelve todos si no hay filtros
+                append("1") // No hay filtros: devuelve todos
             }
         }
 
@@ -275,7 +261,7 @@ class SQLiteHelper(private val context: Context) {
     }
 
     /*
-    Metodo para actualizar los textos con las modificaciones del usuario
+     * Actualiza un texto específico dentro de una tabla, cambiando el contenido original por uno nuevo.
      */
     fun actualizarTextoPorContenido(tabla: String, textoOriginal: String, textoNuevo: String) {
         val sql = """
