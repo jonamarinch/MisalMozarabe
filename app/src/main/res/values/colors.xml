@@ -2,5 +2,14 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <!-- Colores para el modo claro -->
+    <color name="fondo_app">#FFF8F0</color>
+    <color name="boton_fondo">#9e8a83</color>
+    <color name="texto_normal">#000000</color>
     <color name="rubrica">#B71C1C</color>
+    <!-- Colores para el modo oscuro -->
+    <color name="fondo_app_d">#121212</color>
+    <color name="boton_fondo_d">#3949AB</color>
+    <color name="texto_normal_d">#FFFFFF</color>
+    <color name="rubrica_d">#EF9A9A</color>
 </resources>

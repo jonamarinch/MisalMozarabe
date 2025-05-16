@@ -2,6 +2,10 @@
     <!-- Base application theme. -->
     <style name="Base.Theme.AppMisalMozarabe" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
+        <item name="android:windowBackground">@color/fondo_app</item>
+        <item name="colorPrimary">@color/boton_fondo</item>
+        <item name="colorOnPrimary">@color/texto_normal</item>
+        <item name="colorError">@color/rubrica</item>
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
     </style>
 

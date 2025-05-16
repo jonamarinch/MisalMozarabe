@@ -2,6 +2,10 @@
     <!-- Base application theme. -->
     <style name="Base.Theme.AppMisalMozarabe" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your dark theme here. -->
+        <item name="android:windowBackground">@color/fondo_app_d</item>
+        <item name="colorPrimary">@color/boton_fondo_d</item>
+        <item name="colorOnPrimary">@color/texto_normal_d</item>
+        <item name="colorError">@color/rubrica_d</item>
         <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
     </style>
 </resources>

@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
     tools:context=".presentation.MainActivity"
-    android:background="#FFF8F0"> <!-- Fondo beige claro en formato HEX -->
+    android:background="?android:windowBackground">
 
     <!-- AppBar con título -->
     <com.google.android.material.appbar.AppBarLayout
@@ -20,8 +20,8 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:title="Seleccionar Fecha Litúrgica"
-            android:titleTextColor="@android:color/black"
-            app:backgroundTint="?attr/colorPrimary" />
+            android:titleTextColor="?attr/colorOnPrimary"
+            android:background="?attr/colorPrimary" />
     </com.google.android.material.appbar.AppBarLayout>
 
     <!-- Contenido centrado -->
@@ -39,7 +39,7 @@
             android:text="Selecciona una fecha o domingo:"
             android:textSize="18sp"
             android:textStyle="bold"
-            android:textColor="#000000"
+            android:textColor="?attr/colorOnPrimary"
             android:layout_marginBottom="16dp" />
 
         <!-- Spinner para tiempos litúrgicos visualmente mejorado con fondo -->
@@ -64,7 +64,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="16sp"
-            android:textColor="#000000"
+            android:textColor="?attr/colorOnPrimary"
             android:layout_marginTop="24dp" />
 
         <!-- Botón principal -->
@@ -83,7 +83,7 @@
             style="@style/Widget.Material3.Button"
             app:cornerRadius="16dp"
             android:textAlignment="center"
-            app:backgroundTint="#9e8a83"/>
+            app:backgroundTint="?attr/colorPrimary"/>
     </LinearLayout>
     <!-- Botón flotante
     <com.google.android.material.floatingactionbutton.FloatingActionButton

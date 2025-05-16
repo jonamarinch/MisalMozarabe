@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="16dp"
-    android:background="#FFF8F0"> <!-- Fondo beige claro en formato HEX -->
+    android:background="?android:windowBackground">
 
     <!-- Scroll del contenido -->
     <ScrollView
@@ -30,7 +30,7 @@
         android:layout_gravity="bottom"
         android:layout_marginBottom="16dp"
         android:paddingHorizontal="16dp"
-        android:weightSum="2">
+        android:weightSum="5">
 
         <!-- Botón para volver -->
         <com.google.android.material.button.MaterialButton
@@ -38,7 +38,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Volver"
+            android:text=""
             android:gravity="center"
             app:icon="@drawable/ic_navigate_back"
             app:iconGravity="start"
@@ -47,7 +47,58 @@
             app:cornerRadius="16dp"
             android:layout_marginEnd="8dp"
             android:textAlignment="center"
-            app:backgroundTint="#9e8a83"/>
+            app:backgroundTint="?attr/colorPrimary"/>
+
+        <!-- Botón para modo claro/oscuro -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnModo"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text=""
+            android:gravity="center"
+            app:icon="@drawable/dark_mode_svgrepo_com"
+            app:iconGravity="start"
+            app:iconPadding="8dp"
+            style="@style/Widget.Material3.Button"
+            app:cornerRadius="16dp"
+            android:layout_marginEnd="8dp"
+            android:textAlignment="center"
+            app:backgroundTint="?attr/colorPrimary"/>
+
+        <!-- Botón para configurar tamaño de texto -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnNav"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text=""
+            android:gravity="center"
+            app:icon="@drawable/navigate_svgrepo_com"
+            app:iconGravity="start"
+            app:iconPadding="8dp"
+            style="@style/Widget.Material3.Button"
+            app:cornerRadius="16dp"
+            android:layout_marginEnd="8dp"
+            android:textAlignment="center"
+            app:backgroundTint="?attr/colorPrimary"/>
+
+        <!-- Botón para configurar lengua -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnLengua"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text=""
+            android:gravity="center"
+            app:icon="@drawable/language_svgrepo_com"
+            app:iconGravity="start"
+            app:iconPadding="8dp"
+            style="@style/Widget.Material3.Button"
+            app:cornerRadius="16dp"
+            android:layout_marginEnd="8dp"
+            android:textAlignment="center"
+            app:backgroundTint="?attr/colorPrimary"/>
 
         <!-- Contenedor para botón Editar/Guardar en misma posición -->
         <FrameLayout
@@ -61,7 +112,10 @@
                 android:id="@+id/btnEdit"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Editar"
+                android:text=""
+                app:icon="@drawable/edit_svgrepo_com"
+                app:iconGravity="start"
+                app:iconPadding="8dp"
                 style="@style/Widget.Material3.Button"
                 app:cornerRadius="16dp"
                 app:backgroundTint="#95a4ab" />
@@ -71,7 +125,10 @@
                 android:id="@+id/btnSave"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Guardar cambios"
+                android:text=""
+                app:icon="@drawable/save_svgrepo_com"
+                app:iconGravity="start"
+                app:iconPadding="8dp"
                 style="@style/Widget.Material3.Button"
                 app:cornerRadius="16dp"
                 app:backgroundTint="#7e9e80"

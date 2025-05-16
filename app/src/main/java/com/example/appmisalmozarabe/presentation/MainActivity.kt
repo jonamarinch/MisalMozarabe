@@ -8,6 +8,7 @@ import android.widget.ArrayAdapter
 import android.widget.Spinner
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import com.example.appmisalmozarabe.R
 import com.example.appmisalmozarabe.data.SQLiteHelper
 import com.example.appmisalmozarabe.databinding.ActivityMainBinding
@@ -19,6 +20,13 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Manejo de preferencias guardadas
+        val prefs = getSharedPreferences("prefs", MODE_PRIVATE)
+        val nightModeSaved = prefs.getBoolean("modoOscuro", false)
+        AppCompatDelegate.setDefaultNightMode(
+            if (nightModeSaved) AppCompatDelegate.MODE_NIGHT_YES else AppCompatDelegate.MODE_NIGHT_NO
+        )
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)

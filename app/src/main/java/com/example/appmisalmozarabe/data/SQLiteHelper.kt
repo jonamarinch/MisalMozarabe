@@ -213,12 +213,15 @@ class SQLiteHelper(private val context: Context) {
      * Si no se pasa ningún filtro, devuelve todos los textos de la tabla.
      */
     fun getTextos(idFiesta: String?, idTiempo: String?, from: String): List<TextoLiturgico> {
+        if (from.isBlank() || !tableExists(from)) return emptyList() // Verifico si la tabla existe
         val lista = mutableListOf<TextoLiturgico>()
 
         if (from.isBlank()) return emptyList()
 
         val params = mutableListOf<String>().apply {
             if (idFiesta != null) {
+                add(idFiesta)
+                add(idFiesta)
                 add(idFiesta)
                 add(idFiesta)
             }
@@ -258,6 +261,18 @@ class SQLiteHelper(private val context: Context) {
         }
 
         return lista
+    }
+
+    /*
+    Verificar si la tabla existe
+     */
+    fun tableExists(tableName: String): Boolean {
+        val cursor = database?.rawQuery(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='$tableName'", null
+        )
+        val exists = cursor?.moveToFirst() ?: false
+        cursor?.close()
+        return exists
     }
 
     /*
