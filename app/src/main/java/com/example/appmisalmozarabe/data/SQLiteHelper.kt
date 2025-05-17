@@ -6,6 +6,7 @@ import android.util.Log
 import java.io.FileOutputStream
 import com.example.appmisalmozarabe.domain.model.TextoLiturgico
 import java.security.MessageDigest
+import java.util.Base64
 
 // Clase de utilidad para manejar la base de datos SQLite del Misal Mozárabe
 class SQLiteHelper(private val context: Context) {
@@ -87,17 +88,16 @@ class SQLiteHelper(private val context: Context) {
     }
 
     /*
-     * Verifica si la contraseña ingresada coincide con la almacenada (en formato hash SHA-256).
+     * Verificar claves: si el usuario existe y está configurado, y si la contraseña es válida
      */
-    fun verificarContrasenna(input: String): Boolean {
-        val cursor = database?.rawQuery(
-            "SELECT CLAVE FROM CONFIG WHERE ID = 1", null
-        )
+    fun autenticarUsuario(nombre: String, clave: String): Boolean {
+        val cursor = database?.rawQuery("SELECT hash_clave, salt FROM config WHERE nombre = ?", arrayOf(nombre))
 
         cursor?.use {
             if (it.moveToFirst()) {
-                val hashGuardado = it.getString(0).trim()
-                val hashInput = hashSha256(input)
+                val hashGuardado = it.getString(0)
+                val salt = it.getString(1)
+                val hashInput = hashClave(clave, salt)
                 return hashInput == hashGuardado
             }
         }
@@ -112,6 +112,13 @@ class SQLiteHelper(private val context: Context) {
         val digest = MessageDigest.getInstance("SHA-256")
         val hashBytes = digest.digest(input.toByteArray(Charsets.UTF_8))
         return hashBytes.joinToString("") { "%02x".format(it) }
+    }
+
+    /*
+     * Devuelve el hash SHA-256 de una clave + salt
+     */
+    private fun hashClave(clave: String, salt: String): String {
+        return hashSha256(salt + clave)
     }
 
     /*

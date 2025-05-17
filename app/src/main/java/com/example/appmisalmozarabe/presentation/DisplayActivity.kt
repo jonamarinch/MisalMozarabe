@@ -342,20 +342,20 @@ class DisplayActivity : AppCompatActivity() {
 
         // Listener para el botón para editar
         btnEdit.setOnClickListener {
-            // Crear campo de texto para la contraseña
-            val input = EditText(this).apply {
-                inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
-                hint = "Contraseña"
-            }
-
             val prefs = getSharedPreferences("prefs", MODE_PRIVATE)
             if (prefs.getBoolean("adminAutenticado", false)) {
                 // Ya autenticado, pasar a modo edición directamente
                 recargarActividadModoEdit()
                 return@setOnClickListener
             } else {
+                // Crear campo de texto para el nombre de usuario
+                val inputUsuario = EditText(this).apply {
+                    hint = "Usuario"
+                    inputType = InputType.TYPE_CLASS_TEXT
+                    setPadding(32, 24, 32, 12)
+                }
                 // Crear campo de texto para la contraseña
-                val input = EditText(this).apply {
+                val inputContra = EditText(this).apply {
                     inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
                     hint = "Contraseña"
                     setPadding(32, 24, 32, 24) // Espaciado interno
@@ -365,23 +365,25 @@ class DisplayActivity : AppCompatActivity() {
                 val container = LinearLayout(this).apply {
                     orientation = LinearLayout.VERTICAL
                     setPadding(48, 32, 48, 0) // Padding exterior del contenedor
-                    addView(input)
+                    addView(inputUsuario)
+                    addView(inputContra)
                 }
 
                 // Mostrar diálogo
                 val dialog = AlertDialog.Builder(this)
                     .setTitle("Acceso restringido")
-                    .setMessage("Introduce la contraseña de administrador para continuar.")
+                    .setMessage("Introduce usuario y contraseña de administrador para continuar.")
                     .setView(container)
                     .setPositiveButton("Aceptar") { _, _ ->
-                        val enteredPassword = input.text.toString()
-                        if (dbHelper.verificarContrasenna(enteredPassword)) {
+                        val enteredUser = inputUsuario.text.toString()
+                        val enteredPassword = inputContra.text.toString()
+                        if (dbHelper.autenticarUsuario(enteredUser, enteredPassword)) {
                             Toast.makeText(this, "Acceso concedido", Toast.LENGTH_SHORT).show()
                             getSharedPreferences("prefs", MODE_PRIVATE).edit()
                                 .putBoolean("adminAutenticado", true).apply()
                             recargarActividadModoEdit()
                         } else {
-                            Toast.makeText(this, "Contraseña incorrecta", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this, "Claves incorrectas", Toast.LENGTH_SHORT).show()
                         }
                     }
                     .setNegativeButton("Cancelar", null)
