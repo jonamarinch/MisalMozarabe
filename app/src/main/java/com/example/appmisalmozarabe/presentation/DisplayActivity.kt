@@ -305,6 +305,26 @@ class DisplayActivity : AppCompatActivity() {
             builder.show()
         }
 
+        // Botón para seleccionar lengua
+        val btnLengua = findViewById<MaterialButton>(R.id.btnLengua)
+        btnLengua.setOnClickListener {
+            val dbHelper = SQLiteHelper(this)
+            val idiomas = dbHelper.getIdiomas().toTypedArray()
+
+            // Mostrar diálogo con selección de idioma
+            AlertDialog.Builder(this)
+                .setTitle("Seleccionar idioma")
+                .setItems(idiomas) { _, which ->
+                    val idiomaSeleccionado = idiomas[which]
+                    Toast.makeText(this, "Idioma seleccionado: $idiomaSeleccionado", Toast.LENGTH_SHORT).show()
+                    // Aquí puedes guardar el idioma en SharedPreferences si lo vas a usar en toda la app
+                    getSharedPreferences("prefs", MODE_PRIVATE).edit()
+                        .putString("idiomaSeleccionado", idiomaSeleccionado).apply()
+                }
+                .setNegativeButton("Cancelar", null)
+                .show()
+        }
+
         // Botón para editar
         val btnEdit = findViewById<MaterialButton>(R.id.btnEdit)
 
@@ -757,13 +777,13 @@ class DisplayActivity : AppCompatActivity() {
         val contenedor = findViewById<LinearLayout>(R.id.contenedorTextos)
 
         // Le pongo el mismo color de fondo para que llame menos la atención
-        contenedor.setBackgroundColor(Color.parseColor("#FFF8F0"))
+        // contenedor.setBackgroundColor(Color.parseColor("#FFF8F0"))
 
         // Contenedor visual para toda la sección de comentarios
         val seccionComentarios = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(24, 48, 24, 48)
-            setBackgroundColor(Color.parseColor("#FFEFD5")) // Un color claro como papaya
+            // setBackgroundColor(Color.parseColor("#FFEFD5")) // Un color claro como papaya
         }
 
         // Título
@@ -771,7 +791,7 @@ class DisplayActivity : AppCompatActivity() {
             text = "Sección de Comentarios"
             textSize = 20f
             setTypeface(null, Typeface.BOLD)
-            setTextColor(Color.DKGRAY)
+            // setTextColor(Color.DKGRAY)
             setPadding(0, 0, 0, 8)
         }
         seccionComentarios.addView(titulo)
@@ -780,7 +800,7 @@ class DisplayActivity : AppCompatActivity() {
         val subtitulo = TextView(this).apply {
             text = "Aquí puedes ver o añadir notas personales relacionadas con esta fiesta."
             textSize = 14f
-            setTextColor(Color.GRAY)
+            // setTextColor(Color.GRAY)
             setPadding(0, 0, 0, 16)
         }
         seccionComentarios.addView(subtitulo)
@@ -791,7 +811,7 @@ class DisplayActivity : AppCompatActivity() {
             val sinComentarios = TextView(this).apply {
                 text = "No hay comentarios añadidos aún."
                 textSize = 16f
-                setTextColor(Color.DKGRAY)
+                // setTextColor(Color.GRAY)
                 setPadding(0, 0, 0, 24)
             }
             seccionComentarios.addView(sinComentarios)
@@ -806,7 +826,7 @@ class DisplayActivity : AppCompatActivity() {
                 val textView = TextView(this).apply {
                     text = comentario
                     textSize = 16f
-                    setTextColor(Color.BLACK)
+                    // setTextColor(Color.BLACK)
                     layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
                 }
 
@@ -838,15 +858,15 @@ class DisplayActivity : AppCompatActivity() {
                 hint = "Escribe un nuevo comentario..."
                 textSize = 16f
                 setPadding(16, 16, 16, 16)
-                setBackgroundColor(Color.WHITE)
+                setBackgroundColor(Color.argb(100, 200, 200, 200))
                 setTextColor(Color.DKGRAY)
                 // **CORREGIR: EL COLOR NO SE VE BIEN**
             }
 
             val btnAgregar = MaterialButton(this).apply {
                 text = "Añadir comentario"
-                setBackgroundColor(Color.parseColor("#FFEFD5"))
-                setTextColor(Color.WHITE)
+                setBackgroundColor(Color.parseColor("#7e9e80"))
+                setTextColor(Color.BLACK)
                 cornerRadius = 32
                 setOnClickListener {
                     val texto = campoComentario.text.toString().trim()

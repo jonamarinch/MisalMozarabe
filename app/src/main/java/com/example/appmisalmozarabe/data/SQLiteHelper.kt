@@ -203,6 +203,20 @@ class SQLiteHelper(private val context: Context) {
     }
 
     /*
+    * Devuelve el listado de idiomas disponibles.
+    */
+    fun getIdiomas(): List<String> {
+        val list = mutableListOf<String>()
+        val cursor = database?.rawQuery("SELECT NOMBRE FROM IDIOMAS ORDER BY ORDEN", null)
+        cursor?.use {
+            while (it.moveToNext()) {
+                list.add(it.getString(0))
+            }
+        }
+        return list
+    }
+
+    /*
      * Método de utilidad para generar un array con un valor repetido varias veces.
      * Útil para consultas SQL con múltiples parámetros iguales.
      */

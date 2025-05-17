@@ -49,6 +49,8 @@ class MainActivity : AppCompatActivity() {
         val spinnerTiempos = findViewById<Spinner>(R.id.spinnerTiempos)
         // Spinner para seleccionar fiesta litúrgica
         val spinnerFiestas = findViewById<Spinner>(R.id.spinnerFiestas)
+        // Spinner para seleccionar idiomas
+        val spinnerIdiomas = findViewById<Spinner>(R.id.spinnerIdiomas)
         // Clase para recoger datos
         val dbHelper = SQLiteHelper(this)
 
@@ -103,6 +105,12 @@ class MainActivity : AppCompatActivity() {
 
             override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
+
+        // Cargar idiomas desde la tabla LINGUAE
+        val idiomas = dbHelper.getIdiomas()
+        val idiomasAdapter = ArrayAdapter(this, R.layout.spinner_item, idiomas)
+        idiomasAdapter.setDropDownViewResource(R.layout.spinner_item)
+        spinnerIdiomas.adapter = idiomasAdapter
 
         // Botón principal
         val botonContinuar = findViewById<MaterialButton>(R.id.btnContinue)

@@ -58,6 +58,14 @@
             android:background="@drawable/spinner_background"
             android:popupBackground="@drawable/spinner_dropdown_background" />
 
+        <!-- Spinner para idiomas visualmente mejorado con fondo -->
+        <Spinner
+            android:id="@+id/spinnerIdiomas"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/spinner_background"
+            android:popupBackground="@drawable/spinner_dropdown_background" />
+
         <!-- Texto que muestra la opción elegida -->
         <TextView
             android:id="@+id/selectedOption"
