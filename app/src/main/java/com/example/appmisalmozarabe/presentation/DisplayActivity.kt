@@ -1,5 +1,6 @@
 package com.example.appmisalmozarabe.presentation
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.Color
@@ -14,17 +15,28 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import android.app.AlertDialog
+import android.content.Context
+import android.content.pm.PackageManager
 import android.content.res.Configuration
+import android.graphics.text.LineBreaker
+import android.os.Build
+import android.os.Environment
+import android.util.Log
 import android.util.TypedValue
 import android.view.View
+import android.widget.Button
 import android.widget.ScrollView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import androidx.core.content.res.ResourcesCompat
 import com.example.appmisalmozarabe.R
 import com.google.android.material.button.MaterialButton
 import com.example.appmisalmozarabe.data.SQLiteHelper
 import com.example.appmisalmozarabe.data.ComentarioManager
 import com.example.appmisalmozarabe.domain.model.TextoLiturgico
+import java.io.File
 
 class DisplayActivity : AppCompatActivity() {
     // Lista para recoger todos los campos EditText mostrados en modo lectura y en modo edicion
@@ -33,6 +45,8 @@ class DisplayActivity : AppCompatActivity() {
     val textosEditados= mutableListOf<EditText>()
     // Índice con las secciones
     private val indiceSecciones = mutableMapOf<String, View>()
+    // Fuente Times New Roman
+    private lateinit var tf: Typeface
 
     // Indicaciones al crear la actividad
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,6 +62,9 @@ class DisplayActivity : AppCompatActivity() {
         // Inflar layout principal con ScrollView y contenedor vertical
         setContentView(R.layout.activity_display) // Tu ScrollView con LinearLayout
         val contenedor = findViewById<LinearLayout>(R.id.contenedorTextos)
+
+        // Inicializar fuente
+        tf = ResourcesCompat.getFont(this, R.font.times_new_roman)!!
 
         // Metodo para ajustar el tamaño del texto
         fun ajustarTamanoTexto(tamano: Float) {
@@ -113,11 +130,15 @@ class DisplayActivity : AppCompatActivity() {
         // Boolean para registrar el modo actual (Lectura o edición)
         var enModoEdicion = intent.getBooleanExtra("modoEdicion", false)
 
+        // Controlar si se muestra el botón flotante
+        val btnLogout = findViewById<Button>(R.id.btnLogout)
+        btnLogout.visibility = if (enModoEdicion) View.VISIBLE else View.GONE
+
         // Crear y añadir TextView para el título de la fiesta
         val tituloTextView = TextView(this).apply {
             text = nombreFiesta
             textSize = 18f
-            setTypeface(null, Typeface.BOLD)
+            setTypeface(tf, Typeface.BOLD)
             val nightModeFlags = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
             if (nightModeFlags == Configuration.UI_MODE_NIGHT_YES) {
                 setTextColor(Color.WHITE)
@@ -133,7 +154,7 @@ class DisplayActivity : AppCompatActivity() {
         val subtituloTextView = TextView(this).apply {
             text = "Oficio de la Misa"
             textSize = 18f
-            setTypeface(null, Typeface.BOLD)
+            setTypeface(tf, Typeface.BOLD)
             val nightModeFlags = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
             if (nightModeFlags == Configuration.UI_MODE_NIGHT_YES) {
                 setTextColor(Color.WHITE)
@@ -162,28 +183,28 @@ class DisplayActivity : AppCompatActivity() {
 
         // Cargar textos Ordinarium
         var textosCargados = dbHelper.getTextos(seleccion?.first, seleccion?.second, "ORDINARIUM")
-        imprimirTextosLiturgicos(contenedor, textosCargados, enModoEdicion, "ORDINARIUM")
+        if (textosCargados.isNotEmpty()) imprimirTextosLiturgicos(contenedor, textosCargados, enModoEdicion, "ORDINARIUM")
         // Cargar textos Accedendi
         textosCargados = dbHelper.getTextos(seleccion?.first, seleccion?.second, "ACCEDENDI")
-        imprimirTextosLiturgicos(contenedor, textosCargados, enModoEdicion, "ACCEDENDI")
+        if (textosCargados.isNotEmpty()) imprimirTextosLiturgicos(contenedor, textosCargados, enModoEdicion, "ACCEDENDI")
         // Cargar textos Confessio
         textosCargados = dbHelper.getTextos(seleccion?.first, seleccion?.second, "CONFESSIO")
-        imprimirTextosLiturgicos(contenedor, textosCargados, enModoEdicion, "CONFESSIO")
+        if (textosCargados.isNotEmpty()) imprimirTextosLiturgicos(contenedor, textosCargados, enModoEdicion, "CONFESSIO")
         // Cargar textos Absolutio
         textosCargados = dbHelper.getTextos(seleccion?.first, seleccion?.second, "ABSOLUTIO")
-        imprimirTextosLiturgicos(contenedor, textosCargados, enModoEdicion, "ABSOLUTIO")
+        if (textosCargados.isNotEmpty()) imprimirTextosLiturgicos(contenedor, textosCargados, enModoEdicion, "ABSOLUTIO")
         // Cargar textos AdAltare
         textosCargados = dbHelper.getTextos(seleccion?.first, seleccion?.second, "ADALTARE")
-        imprimirTextosLiturgicos(contenedor, textosCargados, enModoEdicion, "ADALTARE")
+        if (textosCargados.isNotEmpty()) imprimirTextosLiturgicos(contenedor, textosCargados, enModoEdicion, "ADALTARE")
         // Cargar textos AnteCrucem
         textosCargados = dbHelper.getTextos(seleccion?.first, seleccion?.second, "ANTECRUCEM")
-        imprimirTextosLiturgicos(contenedor, textosCargados, enModoEdicion, "ANTECRUCEM")
+        if (textosCargados.isNotEmpty()) imprimirTextosLiturgicos(contenedor, textosCargados, enModoEdicion, "ANTECRUCEM")
         // Cargar textos ExtensionisCorporalis
         textosCargados = dbHelper.getTextos(seleccion?.first, seleccion?.second, "EXTENSIONISCORPORALIS")
-        imprimirTextosLiturgicos(contenedor, textosCargados, enModoEdicion, "EXTENSIONISCORPORALIS")
+        if (textosCargados.isNotEmpty()) imprimirTextosLiturgicos(contenedor, textosCargados, enModoEdicion, "EXTENSIONISCORPORALIS")
         // Cargar textos Mixtionis
         textosCargados = dbHelper.getTextos(seleccion?.first, seleccion?.second, "MIXTIONIS")
-        imprimirTextosLiturgicos(contenedor, textosCargados, enModoEdicion, "MIXTIONIS")
+        if (textosCargados.isNotEmpty()) imprimirTextosLiturgicos(contenedor, textosCargados, enModoEdicion, "MIXTIONIS")
 
         /*
         Controlar impresión de secciones por tiempos y fiestas
@@ -340,6 +361,54 @@ class DisplayActivity : AppCompatActivity() {
             btnSave.visibility = View.GONE
         }
 
+        // Diálogo para cambiar contraseña, importante para el botón de editar
+        fun mostrarDialogoCambiarContra(usuario: String) {
+            val inputClave1 = EditText(this).apply {
+                hint = "Nueva contraseña"
+                inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+            }
+            val inputClave2 = EditText(this).apply {
+                hint = "Repite la contraseña"
+                inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+            }
+
+            val layout = LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                setPadding(48, 32, 48, 0)
+                addView(inputClave1)
+                addView(inputClave2)
+            }
+
+            AlertDialog.Builder(this)
+                .setTitle("Crear nueva clave")
+                .setMessage("Introduce la nueva contraseña dos veces.")
+                .setView(layout)
+                .setPositiveButton("Cambiar Contraseña") { _, _ ->
+                    val pass1 = inputClave1.text.toString()
+                    val pass2 = inputClave2.text.toString()
+
+                    if (pass1 == pass2) {
+                        // Verificar requisitos de contraseña
+                        if (!esContrasenaSegura(pass1)) {
+                            Toast.makeText(this, "Contraseña insegura. Debe tener al menos 8 caracteres, mayúscula, minúscula, número y símbolo.", Toast.LENGTH_LONG).show()
+                            return@setPositiveButton
+                        }
+                        val dbHelper = SQLiteHelper(this)
+                        val exito = dbHelper.cambiarContra(usuario, pass1)
+                        if (exito) {
+                            // ✅ Exportar base de datos modificada como respaldo interno
+                            exportDatabaseConPermiso()
+                        } else {
+                            Toast.makeText(this, "Error: el usuario ya existe", Toast.LENGTH_SHORT).show()
+                        }
+                    } else {
+                        Toast.makeText(this, "Las contraseñas no coinciden", Toast.LENGTH_SHORT).show()
+                    }
+                }
+                .setNegativeButton("Cancelar", null)
+                .show()
+        }
+
         // Listener para el botón para editar
         btnEdit.setOnClickListener {
             val prefs = getSharedPreferences("prefs", MODE_PRIVATE)
@@ -369,6 +438,8 @@ class DisplayActivity : AppCompatActivity() {
                     addView(inputContra)
                 }
 
+                // Variable para manejar el usuario en caso de querer cambiar la contraseña
+                var nomUsuario = ""
                 // Mostrar diálogo
                 val dialog = AlertDialog.Builder(this)
                     .setTitle("Acceso restringido")
@@ -376,12 +447,26 @@ class DisplayActivity : AppCompatActivity() {
                     .setView(container)
                     .setPositiveButton("Aceptar") { _, _ ->
                         val enteredUser = inputUsuario.text.toString()
+                        nomUsuario = enteredUser
                         val enteredPassword = inputContra.text.toString()
                         if (dbHelper.autenticarUsuario(enteredUser, enteredPassword)) {
                             Toast.makeText(this, "Acceso concedido", Toast.LENGTH_SHORT).show()
                             getSharedPreferences("prefs", MODE_PRIVATE).edit()
                                 .putBoolean("adminAutenticado", true).apply()
                             recargarActividadModoEdit()
+                        } else {
+                            Toast.makeText(this, "Claves incorrectas", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    .setNeutralButton("Cambiar Contraseña") { _, _ ->
+                        val enteredUser = inputUsuario.text.toString()
+                        nomUsuario = enteredUser
+                        val enteredPassword = inputContra.text.toString()
+                        if (dbHelper.autenticarUsuario(enteredUser, enteredPassword)) {
+                            Toast.makeText(this, "Acceso concedido", Toast.LENGTH_SHORT).show()
+                            getSharedPreferences("prefs", MODE_PRIVATE).edit()
+                                .putBoolean("adminAutenticado", true).apply()
+                            mostrarDialogoCambiarContra(nomUsuario)
                         } else {
                             Toast.makeText(this, "Claves incorrectas", Toast.LENGTH_SHORT).show()
                         }
@@ -408,6 +493,7 @@ class DisplayActivity : AppCompatActivity() {
         // Listener para el botón para guardar cambios
         btnSave.setOnClickListener {
             val dbHelper = SQLiteHelper(this)
+            val usuario = prefs.getString("usuarioAdmin", "desconocido") ?: "desconocido"
 
             if (textosControl.size != textosEditados.size) {
                 Toast.makeText(this, "Error: las listas de control y edición no coinciden", Toast.LENGTH_LONG).show()
@@ -421,14 +507,23 @@ class DisplayActivity : AppCompatActivity() {
                 // Evita updates innecesarios
                 if (textoNuevo != textoOriginal) {
                     dbHelper.actualizarTextoPorContenido(tabla, textoOriginal, textoNuevo)
+                    // LLAMADA A LA FUNCIÓN REGISTRAR LOG
+                    registrarLog(this, usuario, tabla, textoOriginal, textoNuevo)
                 }
 
                 // Actualizar la lista de control (opcional, por si acaso)
                 textosControl[i] = Triple(tabla, textoOriginal, textoNuevo)
             }
-            // Notificación de cambios guardados
-            Toast.makeText(this, "Cambios guardados", Toast.LENGTH_SHORT).show()
+            // ✅ Exportar base de datos modificada como respaldo interno
+            exportDatabaseConPermiso()
             // Recargar en modo lectura
+            recargarActividadModoLect()
+        }
+
+        // Listener del botón para el logout
+        btnLogout.setOnClickListener {
+            prefs.edit().remove("adminAutenticado").remove("usuarioAdmin").apply()
+            Toast.makeText(this, "Sesión cerrada", Toast.LENGTH_SHORT).show()
             recargarActividadModoLect()
         }
     }
@@ -456,6 +551,8 @@ class DisplayActivity : AppCompatActivity() {
             val editText = EditText(this).apply {
                 setText(texto)
                 textSize = 18f
+                setTypeface(tf, Typeface.NORMAL)
+                justificationMode = LineBreaker.JUSTIFICATION_MODE_INTER_WORD
                 setPadding(16, 8, 16, 8)
                 val nightModeFlags = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
                 if (nightModeFlags == Configuration.UI_MODE_NIGHT_YES) {
@@ -472,6 +569,8 @@ class DisplayActivity : AppCompatActivity() {
             // En modo lectura, usamos TextView
             val textView = TextView(this).apply {
                 textSize = 18f
+                setTypeface(tf, Typeface.NORMAL)
+                justificationMode = LineBreaker.JUSTIFICATION_MODE_INTER_WORD
                 setPadding(16, 8, 16, 8)
                 val nightModeFlags = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
                 if (nightModeFlags == Configuration.UI_MODE_NIGHT_YES) {
@@ -487,9 +586,16 @@ class DisplayActivity : AppCompatActivity() {
                 val startIndex = texto.indexOf("✠")
                 val endIndex = startIndex + 1 // "✠" ocupa 1 caracter
 
+                // Controlar modo claro/oscuro
+                val nightModeFlags = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+                var colorApropiado = resources.getColor(R.color.rubrica, null)
+                if (nightModeFlags == Configuration.UI_MODE_NIGHT_YES) {
+                    colorApropiado = resources.getColor(R.color.rubrica_d, null)
+                }
+
                 // Aplicar color rubrica al símbolo
                 spannable.setSpan(
-                    android.text.style.ForegroundColorSpan(resources.getColor(R.color.rubrica, null)),
+                    android.text.style.ForegroundColorSpan(colorApropiado),
                     startIndex,
                     endIndex,
                     Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
@@ -511,8 +617,15 @@ class DisplayActivity : AppCompatActivity() {
             val editText = EditText(this).apply {
                 setText(texto)
                 textSize = 18f
-                setTypeface(null, Typeface.ITALIC)
-                setTextColor(resources.getColor(R.color.rubrica, null)) // Asegúrate de tener este color en `colors.xml`
+                setTypeface(tf, Typeface.ITALIC)
+                justificationMode = LineBreaker.JUSTIFICATION_MODE_INTER_WORD
+
+                // Controlar modo claro/oscuro para el color de la rúbrica
+                val nightModeFlags = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+                setTextColor(resources.getColor(R.color.rubrica, null))
+                if (nightModeFlags == Configuration.UI_MODE_NIGHT_YES) {
+                    setTextColor(resources.getColor(R.color.rubrica_d, null))
+                }
                 setPadding(16, 8, 16, 8)
                 background = null // Sin fondo para simular TextView
             }
@@ -524,8 +637,14 @@ class DisplayActivity : AppCompatActivity() {
             val textView = TextView(this).apply {
                 text = texto
                 textSize = 18f
-                setTypeface(null, Typeface.ITALIC)
-                setTextColor(resources.getColor(R.color.rubrica, null)) // Asegúrate de tener este color en `colors.xml`
+                setTypeface(tf, Typeface.ITALIC)
+                justificationMode = LineBreaker.JUSTIFICATION_MODE_INTER_WORD
+                // Controlar modo claro/oscuro para el color de la rúbrica
+                val nightModeFlags = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+                setTextColor(resources.getColor(R.color.rubrica, null))
+                if (nightModeFlags == Configuration.UI_MODE_NIGHT_YES) {
+                    setTextColor(resources.getColor(R.color.rubrica_d, null))
+                }
                 setPadding(16, 8, 16, 8)
             }
             contenedor.addView(textView)
@@ -539,8 +658,14 @@ class DisplayActivity : AppCompatActivity() {
             val editText = EditText(this).apply {
                 setText(texto)
                 textSize = 18f
-                setTypeface(null, Typeface.ITALIC)
-                setTextColor(resources.getColor(R.color.rubrica, null)) // Asegúrate de tener este color en `colors.xml`
+                setTypeface(tf, Typeface.ITALIC)
+                justificationMode = LineBreaker.JUSTIFICATION_MODE_INTER_WORD
+                // Controlar modo claro/oscuro para el color de la rúbrica
+                val nightModeFlags = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+                setTextColor(resources.getColor(R.color.rubrica, null))
+                if (nightModeFlags == Configuration.UI_MODE_NIGHT_YES) {
+                    setTextColor(resources.getColor(R.color.rubrica_d, null))
+                }
                 setPadding(16, 8, 16, 8)
                 gravity = Gravity.CENTER // Centrar texto horizontalmente
                 background = null // Sin fondo para simular TextView
@@ -553,8 +678,14 @@ class DisplayActivity : AppCompatActivity() {
             val textView = TextView(this).apply {
                 text = texto
                 textSize = 18f
-                setTypeface(null, Typeface.ITALIC)
-                setTextColor(resources.getColor(R.color.rubrica, null)) // Asegúrate de tener este color en `colors.xml`
+                setTypeface(tf, Typeface.ITALIC)
+                justificationMode = LineBreaker.JUSTIFICATION_MODE_INTER_WORD
+                // Controlar modo claro/oscuro para el color de la rúbrica
+                val nightModeFlags = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+                setTextColor(resources.getColor(R.color.rubrica, null))
+                if (nightModeFlags == Configuration.UI_MODE_NIGHT_YES) {
+                    setTextColor(resources.getColor(R.color.rubrica_d, null))
+                }
                 setPadding(16, 8, 16, 8)
                 // Centrar texto horizontalmente
                 gravity = Gravity.CENTER
@@ -570,8 +701,14 @@ class DisplayActivity : AppCompatActivity() {
             val editText = EditText(this).apply {
                 setText(texto)
                 textSize = 18f
-                setTypeface(null, Typeface.BOLD)
-                setTextColor(resources.getColor(R.color.rubrica, null)) // Asegúrate de tener este color en `colors.xml`
+                setTypeface(tf, Typeface.BOLD)
+                justificationMode = LineBreaker.JUSTIFICATION_MODE_INTER_WORD
+                // Controlar modo claro/oscuro para el color de la rúbrica
+                val nightModeFlags = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+                setTextColor(resources.getColor(R.color.rubrica, null))
+                if (nightModeFlags == Configuration.UI_MODE_NIGHT_YES) {
+                    setTextColor(resources.getColor(R.color.rubrica_d, null))
+                }
                 setPadding(16, 8, 16, 8)
                 gravity = Gravity.CENTER // Centrar texto horizontalmente
                 background = null // Sin fondo para parecerse a TextView
@@ -585,8 +722,14 @@ class DisplayActivity : AppCompatActivity() {
             val textView = TextView(this).apply {
                 text = texto
                 textSize = 18f
-                setTypeface(null, Typeface.BOLD)
-                setTextColor(resources.getColor(R.color.rubrica, null)) // Asegúrate de tener este color en `colors.xml`
+                setTypeface(tf, Typeface.BOLD)
+                justificationMode = LineBreaker.JUSTIFICATION_MODE_INTER_WORD
+                // Controlar modo claro/oscuro para el color de la rúbrica
+                val nightModeFlags = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+                setTextColor(resources.getColor(R.color.rubrica, null))
+                if (nightModeFlags == Configuration.UI_MODE_NIGHT_YES) {
+                    setTextColor(resources.getColor(R.color.rubrica_d, null))
+                }
                 setPadding(16, 8, 16, 8)
                 // Centrar texto horizontalmente
                 gravity = Gravity.CENTER
@@ -610,6 +753,8 @@ class DisplayActivity : AppCompatActivity() {
             val editText = EditText(this).apply {
                 setText(texto)
                 textSize = 18f
+                setTypeface(tf, Typeface.NORMAL)
+                justificationMode = LineBreaker.JUSTIFICATION_MODE_INTER_WORD
                 setPadding(16, 8, 16, 8)
                 val nightModeFlags = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
                 if (nightModeFlags == Configuration.UI_MODE_NIGHT_YES) {
@@ -633,18 +778,26 @@ class DisplayActivity : AppCompatActivity() {
                 rubricaHasta,
                 android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
             )
+
+            // Controlar modo claro/oscuro
+            val nightModeFlags = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+            var colorApropiado = resources.getColor(R.color.rubrica, null)
+            if (nightModeFlags == Configuration.UI_MODE_NIGHT_YES) {
+                colorApropiado = resources.getColor(R.color.rubrica_d, null)
+            }
+
+            // Aplicar color rubrica al símbolo
             spannable.setSpan(
-                android.text.style.ForegroundColorSpan(resources.getColor(R.color.rubrica, null)),
+                android.text.style.ForegroundColorSpan(colorApropiado),
                 0,
                 rubricaHasta,
-                android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
             )
 
             // El resto del texto (opcional: puedes aplicar estilo "normal" explícitamente si quieres)
 
             // Necesario para controlar el color del texto según el modo
             var colorTexto = Color.BLACK;
-            val nightModeFlags = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
             if (nightModeFlags == Configuration.UI_MODE_NIGHT_YES) {
                 colorTexto = Color.WHITE
             }
@@ -661,9 +814,16 @@ class DisplayActivity : AppCompatActivity() {
                 val startIndex = texto.indexOf("✠")
                 val endIndex = startIndex + 1 // "✠" ocupa 1 caracter
 
+                // Controlar modo claro/oscuro
+                val nightModeFlags = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+                var colorApropiado = resources.getColor(R.color.rubrica, null)
+                if (nightModeFlags == Configuration.UI_MODE_NIGHT_YES) {
+                    colorApropiado = resources.getColor(R.color.rubrica_d, null)
+                }
+
                 // Aplicar color rubrica al símbolo
                 spannable.setSpan(
-                    android.text.style.ForegroundColorSpan(resources.getColor(R.color.rubrica, null)),
+                    android.text.style.ForegroundColorSpan(colorApropiado),
                     startIndex,
                     endIndex,
                     Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
@@ -673,6 +833,8 @@ class DisplayActivity : AppCompatActivity() {
             val textView = TextView(this).apply {
                 text = spannable
                 textSize = 18f
+                setTypeface(tf, Typeface.NORMAL)
+                justificationMode = LineBreaker.JUSTIFICATION_MODE_INTER_WORD
                 setPadding(16, 8, 16, 8)
             }
 
@@ -688,6 +850,8 @@ class DisplayActivity : AppCompatActivity() {
             val editText = EditText(this).apply {
                 setText(texto)
                 textSize = 18f
+                setTypeface(tf, Typeface.BOLD)
+                justificationMode = LineBreaker.JUSTIFICATION_MODE_INTER_WORD
                 setPadding(125, 8, 16, 8)
                 val nightModeFlags = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
                 if (nightModeFlags == Configuration.UI_MODE_NIGHT_YES) {
@@ -695,7 +859,6 @@ class DisplayActivity : AppCompatActivity() {
                 } else {
                     setTextColor(Color.BLACK)
                 }
-                typeface = Typeface.DEFAULT_BOLD
                 background = null // Sin fondo para simular TextView
             }
             contenedor.addView(editText)
@@ -706,6 +869,8 @@ class DisplayActivity : AppCompatActivity() {
             val textView = TextView(this).apply {
                 text = texto
                 textSize = 18f
+                setTypeface(tf, Typeface.BOLD)
+                justificationMode = LineBreaker.JUSTIFICATION_MODE_INTER_WORD
                 setPadding(125, 8, 16, 8)
                 val nightModeFlags = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
                 if (nightModeFlags == Configuration.UI_MODE_NIGHT_YES) {
@@ -713,7 +878,6 @@ class DisplayActivity : AppCompatActivity() {
                 } else {
                     setTextColor(Color.BLACK)
                 }
-                typeface = Typeface.DEFAULT_BOLD
             }
             contenedor.addView(textView)
         }
@@ -726,6 +890,8 @@ class DisplayActivity : AppCompatActivity() {
             val editText = EditText(this).apply {
                 setText(texto)
                 textSize = 18f
+                setTypeface(tf, Typeface.BOLD)
+                justificationMode = LineBreaker.JUSTIFICATION_MODE_INTER_WORD
                 setPadding(16, 8, 16, 8)
                 val nightModeFlags = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
                 if (nightModeFlags == Configuration.UI_MODE_NIGHT_YES) {
@@ -733,7 +899,6 @@ class DisplayActivity : AppCompatActivity() {
                 } else {
                     setTextColor(Color.BLACK)
                 }
-                typeface = Typeface.DEFAULT_BOLD
                 background = null // Sin fondo para simular TextView
             }
             contenedor.addView(editText)
@@ -744,6 +909,8 @@ class DisplayActivity : AppCompatActivity() {
             val textView = TextView(this).apply {
                 text = texto
                 textSize = 18f
+                setTypeface(tf, Typeface.BOLD)
+                justificationMode = LineBreaker.JUSTIFICATION_MODE_INTER_WORD
                 setPadding(16, 8, 16, 8)
                 val nightModeFlags = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
                 if (nightModeFlags == Configuration.UI_MODE_NIGHT_YES) {
@@ -751,7 +918,6 @@ class DisplayActivity : AppCompatActivity() {
                 } else {
                     setTextColor(Color.BLACK)
                 }
-                typeface = Typeface.DEFAULT_BOLD
             }
             contenedor.addView(textView)
         }
@@ -792,7 +958,8 @@ class DisplayActivity : AppCompatActivity() {
         val titulo = TextView(this).apply {
             text = "Sección de Comentarios"
             textSize = 20f
-            setTypeface(null, Typeface.BOLD)
+            setTypeface(tf, Typeface.BOLD)
+            justificationMode = LineBreaker.JUSTIFICATION_MODE_INTER_WORD
             // setTextColor(Color.DKGRAY)
             setPadding(0, 0, 0, 8)
         }
@@ -887,5 +1054,84 @@ class DisplayActivity : AppCompatActivity() {
 
         // Añadir todo al contenedor principal
         contenedor.addView(seccionComentarios)
+    }
+
+    // Para comprobar que la contraseña es segura
+    fun esContrasenaSegura(contra: String): Boolean {
+        val longitudValida = contra.length >= 8
+        val tieneMayuscula = contra.any { it.isUpperCase() }
+        val tieneMinuscula = contra.any { it.isLowerCase() }
+        val tieneNumero = contra.any { it.isDigit() }
+        val tieneEspecial = contra.any { "!@#\$%^&*()_+-=[]{}/<>?".contains(it) }
+
+        return longitudValida && tieneMayuscula && tieneMinuscula && tieneNumero && tieneEspecial
+    }
+
+
+    // Para la exportación de los datos guardados
+    private fun exportDatabaseConPermiso() {
+        val permiso = Manifest.permission.WRITE_EXTERNAL_STORAGE
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val concedido = ContextCompat.checkSelfPermission(this, permiso) == PackageManager.PERMISSION_GRANTED
+            if (!concedido) {
+                ActivityCompat.requestPermissions(this, arrayOf(permiso), 1234)
+                return
+            }
+        }
+
+        val ok = exportDatabase(this)
+        val msg = if (ok) "Cambios guardados y copia realizada" else "Cambios guardados, pero error al hacer copia"
+        Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
+    }
+
+    // Para la exportación de los datos guardados
+    fun exportDatabase(context: Context): Boolean {
+        return try {
+            val sourceFile = context.getDatabasePath("misal.db")
+            val exportDir = File(Environment.getExternalStorageDirectory(), "backup-dir")
+            if (!exportDir.exists()) exportDir.mkdirs()
+
+            val destFile = File(exportDir, "misal_backup.db")
+            sourceFile.copyTo(destFile, overwrite = true)
+
+            Log.d("EXPORT", "BD exportada a: ${destFile.absolutePath}")
+            true
+        } catch (e: Exception) {
+            Log.e("EXPORT", "Error al exportar: ${e.message}")
+            false
+        }
+    }
+
+    // Metodo para manejar la respuesta al permiso (exportar BD)
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+        if (requestCode == 1234) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                exportDatabaseConPermiso()
+            } else {
+                Toast.makeText(this, "Permiso denegado: no se podrá guardar la copia", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    // Metodo para registrar log y por tanto las modificaciones sobre la BD
+    private fun registrarLog(context: Context, usuario: String, tabla: String, original: String, nuevo: String) {
+        val timestamp = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault())
+            .format(java.util.Date())
+
+        val entradaLog = "[$timestamp] Usuario: $usuario | Tabla: $tabla | Original: \"${original.take(100)}\" | Nuevo: \"${nuevo.take(100)}\"\n"
+
+        try {
+            val archivo = java.io.File(context.filesDir, "cambios_log.txt")
+            archivo.appendText(entradaLog)
+        } catch (e: Exception) {
+            android.util.Log.e("LOG", "Error al guardar log: ${e.message}")
+        }
     }
 }

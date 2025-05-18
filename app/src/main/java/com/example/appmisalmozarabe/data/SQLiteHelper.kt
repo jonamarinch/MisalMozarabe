@@ -1,12 +1,19 @@
 package com.example.appmisalmozarabe.data
 
+import android.Manifest
+import android.app.Activity
 import android.content.Context
+import android.content.pm.PackageManager
 import android.database.sqlite.SQLiteDatabase
+import android.os.Build
+import android.os.Environment
 import android.util.Log
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import java.io.FileOutputStream
 import com.example.appmisalmozarabe.domain.model.TextoLiturgico
+import java.io.File
 import java.security.MessageDigest
-import java.util.Base64
 
 // Clase de utilidad para manejar la base de datos SQLite del Misal Mozárabe
 class SQLiteHelper(private val context: Context) {
@@ -119,6 +126,31 @@ class SQLiteHelper(private val context: Context) {
      */
     private fun hashClave(clave: String, salt: String): String {
         return hashSha256(salt + clave)
+    }
+
+    /*
+     * Cambia la contraseña de un usuario existente
+     */
+    fun cambiarContra(nombre: String, claveNueva: String): Boolean {
+        // Verificar si el usuario existe
+        val cursor = database?.rawQuery("SELECT COUNT(*) FROM config WHERE nombre = ?", arrayOf(nombre))
+        cursor?.use {
+            if (it.moveToFirst() && it.getInt(0) == 0) {
+                return false // No existe el usuario
+            }
+        }
+
+        // Generar nuevo salt y nuevo hash
+        val nuevoSalt = System.currentTimeMillis().toString()
+        val nuevoHash = hashClave(claveNueva, nuevoSalt)
+
+        // Actualizar en la base de datos
+        database?.execSQL(
+            "UPDATE config SET hash_clave = ?, salt = ? WHERE nombre = ?",
+            arrayOf(nuevoHash, nuevoSalt, nombre)
+        )
+
+        return true
     }
 
     /*
