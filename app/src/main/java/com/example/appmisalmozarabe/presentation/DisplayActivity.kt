@@ -59,6 +59,9 @@ class DisplayActivity : AppCompatActivity() {
             if (nightModeSaved) AppCompatDelegate.MODE_NIGHT_YES else AppCompatDelegate.MODE_NIGHT_NO
         )
 
+        // Manejo del usuario logado
+        val nomUsuario = prefs.getString("nombreUsuario", "desconocido") ?: "desconocido"
+
         // Inflar layout principal con ScrollView y contenedor vertical
         setContentView(R.layout.activity_display) // Tu ScrollView con LinearLayout
         val contenedor = findViewById<LinearLayout>(R.id.contenedorTextos)
@@ -172,8 +175,19 @@ class DisplayActivity : AppCompatActivity() {
         // Comprobar fiesta y tiempo
         val seleccion = dbHelper.getCodigoFiestaYTiempo(nombreFiesta)
 
-        // Cuando proceda, mostrar comentarios
+        // Cuando proceda, mostrar comentarios y logs
         if (seleccion?.first != null && enModoEdicion) {
+            val btnLogs = MaterialButton(this).apply {
+                text = "Ver cambios realizados"
+                icon = ContextCompat.getDrawable(this@DisplayActivity, R.drawable.spinner_background) // usa un drawable apropiado
+                iconPadding = 8
+                cornerRadius = 24
+                setPadding(24, 16, 24, 16)
+                setOnClickListener {
+                    mostrarLogsModificaciones(seleccion.first!!)
+                }
+            }
+            contenedor.addView(btnLogs)  // Antes de mostrar comentarios
             mostrarComentarios(seleccion.first)
         }
 
@@ -426,6 +440,7 @@ class DisplayActivity : AppCompatActivity() {
                 // Crear campo de texto para la contraseña
                 val inputContra = EditText(this).apply {
                     inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+                    typeface = tf
                     hint = "Contraseña"
                     setPadding(32, 24, 32, 24) // Espaciado interno
                 }
@@ -439,7 +454,8 @@ class DisplayActivity : AppCompatActivity() {
                 }
 
                 // Variable para manejar el usuario en caso de querer cambiar la contraseña
-                var nomUsuario = ""
+                var nomUsuario = "desconocido"
+
                 // Mostrar diálogo
                 val dialog = AlertDialog.Builder(this)
                     .setTitle("Acceso restringido")
@@ -452,7 +468,9 @@ class DisplayActivity : AppCompatActivity() {
                         if (dbHelper.autenticarUsuario(enteredUser, enteredPassword)) {
                             Toast.makeText(this, "Acceso concedido", Toast.LENGTH_SHORT).show()
                             getSharedPreferences("prefs", MODE_PRIVATE).edit()
-                                .putBoolean("adminAutenticado", true).apply()
+                                .putBoolean("adminAutenticado", true)
+                                .putString("nombreUsuario", enteredUser)
+                                .apply()
                             recargarActividadModoEdit()
                         } else {
                             Toast.makeText(this, "Claves incorrectas", Toast.LENGTH_SHORT).show()
@@ -465,7 +483,9 @@ class DisplayActivity : AppCompatActivity() {
                         if (dbHelper.autenticarUsuario(enteredUser, enteredPassword)) {
                             Toast.makeText(this, "Acceso concedido", Toast.LENGTH_SHORT).show()
                             getSharedPreferences("prefs", MODE_PRIVATE).edit()
-                                .putBoolean("adminAutenticado", true).apply()
+                                .putBoolean("adminAutenticado", true)
+                                .putString("nombreUsuario", enteredUser)
+                                .apply()
                             mostrarDialogoCambiarContra(nomUsuario)
                         } else {
                             Toast.makeText(this, "Claves incorrectas", Toast.LENGTH_SHORT).show()
@@ -493,7 +513,6 @@ class DisplayActivity : AppCompatActivity() {
         // Listener para el botón para guardar cambios
         btnSave.setOnClickListener {
             val dbHelper = SQLiteHelper(this)
-            val usuario = prefs.getString("usuarioAdmin", "desconocido") ?: "desconocido"
 
             if (textosControl.size != textosEditados.size) {
                 Toast.makeText(this, "Error: las listas de control y edición no coinciden", Toast.LENGTH_LONG).show()
@@ -508,7 +527,9 @@ class DisplayActivity : AppCompatActivity() {
                 if (textoNuevo != textoOriginal) {
                     dbHelper.actualizarTextoPorContenido(tabla, textoOriginal, textoNuevo)
                     // LLAMADA A LA FUNCIÓN REGISTRAR LOG
-                    registrarLog(this, usuario, tabla, textoOriginal, textoNuevo)
+                    if (seleccion != null) {
+                        dbHelper.registrarLogModificacion(nomUsuario, tabla, textoOriginal, textoNuevo, seleccion.first)
+                    }
                 }
 
                 // Actualizar la lista de control (opcional, por si acaso)
@@ -1006,7 +1027,7 @@ class DisplayActivity : AppCompatActivity() {
                             ComentarioManager.eliminarComentario(this@DisplayActivity, idFiesta, index)
                             recargarActividadModoEdit()
                         }
-                        setBackgroundColor(Color.RED)
+                        setBackgroundColor(Color.parseColor("#FF6F61"))
                         setTextColor(Color.WHITE)
                         cornerRadius = 24
                         textSize = 12f
@@ -1029,6 +1050,8 @@ class DisplayActivity : AppCompatActivity() {
                 setPadding(16, 16, 16, 16)
                 setBackgroundColor(Color.argb(100, 200, 200, 200))
                 setTextColor(Color.DKGRAY)
+                inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE
+                typeface = tf
                 // **CORREGIR: EL COLOR NO SE VE BIEN**
             }
 
@@ -1120,18 +1143,26 @@ class DisplayActivity : AppCompatActivity() {
         }
     }
 
-    // Metodo para registrar log y por tanto las modificaciones sobre la BD
-    private fun registrarLog(context: Context, usuario: String, tabla: String, original: String, nuevo: String) {
-        val timestamp = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault())
-            .format(java.util.Date())
+    /*
+     * Metodo para mostrar logs tras pulsar botón
+     */
+    private fun mostrarLogsModificaciones(idFiesta: String) {
+        val dbHelper = SQLiteHelper(this)
+        val registros = dbHelper.obtenerLogsPorFiesta(idFiesta)
 
-        val entradaLog = "[$timestamp] Usuario: $usuario | Tabla: $tabla | Original: \"${original.take(100)}\" | Nuevo: \"${nuevo.take(100)}\"\n"
-
-        try {
-            val archivo = java.io.File(context.filesDir, "cambios_log.txt")
-            archivo.appendText(entradaLog)
-        } catch (e: Exception) {
-            android.util.Log.e("LOG", "Error al guardar log: ${e.message}")
+        if (registros.isEmpty()) {
+            Toast.makeText(this, "No hay modificaciones registradas", Toast.LENGTH_SHORT).show()
+            return
         }
+
+        val mensajes = registros.joinToString("\n\n") { log ->
+            "🗓 Fecha: ${log.fecha}\n👤 Usuario: ${log.usuario}\n🗂 Tabla: ${log.tabla}\n📝 Antes: ${log.textoOriginal}\n✏️ Después: ${log.textoNuevo}"
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle("Historial de modificaciones")
+            .setMessage(mensajes)
+            .setPositiveButton("Cerrar", null)
+            .show()
     }
 }

@@ -10,6 +10,7 @@ import android.os.Environment
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.example.appmisalmozarabe.domain.model.LogModificacion
 import java.io.FileOutputStream
 import com.example.appmisalmozarabe.domain.model.TextoLiturgico
 import java.io.File
@@ -339,5 +340,58 @@ class SQLiteHelper(private val context: Context) {
     """.trimIndent()
 
         database?.execSQL(sql, arrayOf(textoNuevo, textoOriginal))
+    }
+
+    /*
+     * Registrar modificación en base de datos
+     */
+    fun registrarLogModificacion(
+        usuario: String,
+        tabla: String,
+        textoOriginal: String,
+        textoNuevo: String,
+        idFiesta: String
+    ) {
+        val fechaActual = System.currentTimeMillis().toString()
+        database?.execSQL(
+            """
+        INSERT INTO LOG_MODIFICACIONES (fecha, usuario, tabla, texto_original, texto_nuevo, fiesta)
+        VALUES (?, ?, ?, ?, ?, ?)
+        """,
+            arrayOf(fechaActual, usuario, tabla, textoOriginal, textoNuevo, idFiesta)
+        )
+    }
+
+    /*
+     * Metodo para obtener los logs a mostrar
+     */
+    fun obtenerLogsPorFiesta(idFiesta: String): List<LogModificacion> {
+        val lista = mutableListOf<LogModificacion>()
+
+        val cursor = database?.rawQuery(
+            """
+        SELECT fecha, usuario, tabla, texto_original, texto_nuevo, fiesta
+        FROM LOG_MODIFICACIONES
+        WHERE fiesta == ?
+        ORDER BY fecha DESC
+        """.trimIndent(), arrayOf(idFiesta)
+        )
+
+        cursor?.use {
+            while (it.moveToNext()) {
+                lista.add(
+                    LogModificacion(
+                        it.getString(0),
+                        it.getString(1),
+                        it.getString(2),
+                        it.getString(3),
+                        it.getString(4),
+                        it.getString(5)
+                    )
+                )
+            }
+        }
+
+        return lista
     }
 }

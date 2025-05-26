@@ -25,13 +25,13 @@ object ComentarioManager {
             // Si no existe, lo crea con contenido vacío
             archivo.writeText("{}")
         }
-        return JSONObject(archivo.readText())
+        return JSONObject(archivo.readText(Charsets.UTF_8))
     }
 
     // Guarda un objeto JSON en el archivo correspondiente
     private fun guardarJSON(context: Context, json: JSONObject) {
         val archivo = getArchivo(context)
-        archivo.writeText(json.toString())
+        archivo.writeText(json.toString(), Charsets.UTF_8)
     }
 
     // Devuelve la lista de comentarios asociados a una fiesta concreta
