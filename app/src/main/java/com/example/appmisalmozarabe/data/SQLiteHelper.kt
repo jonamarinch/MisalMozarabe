@@ -15,6 +15,9 @@ import java.io.FileOutputStream
 import com.example.appmisalmozarabe.domain.model.TextoLiturgico
 import java.io.File
 import java.security.MessageDigest
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 // Clase de utilidad para manejar la base de datos SQLite del Misal Mozárabe
 class SQLiteHelper(private val context: Context) {
@@ -352,7 +355,8 @@ class SQLiteHelper(private val context: Context) {
         textoNuevo: String,
         idFiesta: String
     ) {
-        val fechaActual = System.currentTimeMillis().toString()
+        // La fecha se debe guardar en un formato legible
+        val fechaActual = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
         database?.execSQL(
             """
         INSERT INTO LOG_MODIFICACIONES (fecha, usuario, tabla, texto_original, texto_nuevo, fiesta)

@@ -37,6 +37,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Selecciona una fecha o domingo:"
+            android:fontFamily="@font/times_new_roman"
             android:textSize="18sp"
             android:textStyle="bold"
             android:textColor="?attr/colorOnPrimary"
@@ -48,6 +49,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/spinner_background"
+            android:fontFamily="@font/times_new_roman"
             android:popupBackground="@drawable/spinner_dropdown_background" />
 
         <!-- Spinner para fiestas litúrgicas visualmente mejorado con fondo -->
@@ -73,6 +75,7 @@
             android:layout_height="wrap_content"
             android:textSize="16sp"
             android:textColor="?attr/colorOnPrimary"
+            android:fontFamily="@font/times_new_roman"
             android:layout_marginTop="24dp" />
 
         <!-- Botón principal -->

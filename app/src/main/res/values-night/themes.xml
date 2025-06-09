@@ -6,7 +6,7 @@
         <item name="colorPrimary">@color/boton_fondo_d</item>
         <item name="colorOnPrimary">@color/texto_normal_d</item>
         <item name="colorError">@color/rubrica_d</item>
-        <item name="android:fontFamily">@font/times_new_roman</item>
+        <item name="android:fontFamily">@font/montserrat_regular</item>
         <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
     </style>
 </resources>

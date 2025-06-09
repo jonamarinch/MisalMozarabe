@@ -440,7 +440,6 @@ class DisplayActivity : AppCompatActivity() {
                 // Crear campo de texto para la contraseña
                 val inputContra = EditText(this).apply {
                     inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
-                    typeface = tf
                     hint = "Contraseña"
                     setPadding(32, 24, 32, 24) // Espaciado interno
                 }
@@ -979,7 +978,6 @@ class DisplayActivity : AppCompatActivity() {
         val titulo = TextView(this).apply {
             text = "Sección de Comentarios"
             textSize = 20f
-            setTypeface(tf, Typeface.BOLD)
             justificationMode = LineBreaker.JUSTIFICATION_MODE_INTER_WORD
             // setTextColor(Color.DKGRAY)
             setPadding(0, 0, 0, 8)
@@ -1051,7 +1049,6 @@ class DisplayActivity : AppCompatActivity() {
                 setBackgroundColor(Color.argb(100, 200, 200, 200))
                 setTextColor(Color.DKGRAY)
                 inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE
-                typeface = tf
                 // **CORREGIR: EL COLOR NO SE VE BIEN**
             }
 
