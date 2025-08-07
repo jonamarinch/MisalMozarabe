@@ -60,6 +60,8 @@ dev_dependencies:
   riverpod_generator: ^3.0.0-dev.16
   riverpod_lint: ^3.0.0-dev.16
 
+  table_calendar: ^3.2.0
+
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
@@ -70,6 +72,18 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  assets:
+    - assets/fonts/
+
+  fonts:
+    - family: Cardo
+      fonts:
+        - asset: assets/fonts/Cardo-Regular.ttf
+        - asset: assets/fonts/Cardo-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Cardo-Italic.ttf
+          style: italic
 
   # To add assets to your application, add an assets section, like this:
   # assets:
