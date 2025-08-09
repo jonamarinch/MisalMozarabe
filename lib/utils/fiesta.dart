@@ -4,7 +4,7 @@ class Fiesta {
   final String codigo;
   /// Nombre de la fiesta (ej: 'Domingo tercero de Cuaresma')
   final String nombre;
-  /// Tiempo litúrgico al que pertenece (ej: 'Cuaresma', 'Pascua', 'Adviento')
+  /// Tiempo litúrgico al que pertenece (ej: 'cua', 'adv')
   final String tiempo;
   /// Constructor de la clase Fiesta
   Fiesta({required this.codigo, required this.nombre, required this.tiempo});
