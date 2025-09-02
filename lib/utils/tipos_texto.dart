@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 enum TipoTexto {
   normal,                 // 1
   rubrica,                // 2

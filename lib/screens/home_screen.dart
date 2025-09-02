@@ -136,29 +136,40 @@ class HomeScreen extends ConsumerWidget {
             const SizedBox(height: 40),
 
             // Botón para acceder a la siguiente pantalla
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                // backgroundColor: const Color(0xFF9e8a83), // Color de fondo personalizado
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.zero, // Esquinas cuadradas
+            FractionallySizedBox(
+              widthFactor: 0.4, // Ocupa el 40% del ancho del padre
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFb8aaa1), // Color acorde a tu estética
+                  foregroundColor: Colors.white, // Color del texto
+                  elevation: 3,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16), // Esquinas redondeadas
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                  textStyle: const TextStyle(
+                    fontFamily: 'Cardo',
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                    letterSpacing: 1.1,
+                  ),
                 ),
+                onPressed: fiestaAsync.maybeWhen(
+                  data: (fiesta) => fiesta != null
+                      ? () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => FiestaScreen(fiesta: fiesta),
+                      ),
+                    );
+                  }
+                      : null,
+                  orElse: () => null,
+                ),
+                child: const Text("Continuar"),
               ),
-              // Botón para navegar a la pantalla de lectura, transmitiendo la selección del usuario
-              onPressed: fiestaAsync.maybeWhen(
-                data: (fiesta) => fiesta != null
-                    ? () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => FiestaScreen(fiesta: fiesta),
-                    ),
-                  );
-                }
-                    : null,
-                orElse: () => null,
-              ),
-              child: const Text("Continuar"),
-            )
+            ),
           ],
         ),
       ),

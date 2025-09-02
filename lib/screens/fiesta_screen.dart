@@ -35,6 +35,7 @@ class _FiestaScreenState extends State<FiestaScreen> {
 
   // Carga textos desde caché o Firestore
   Future<void> _loadTextos() async {
+    print('[TAG] Entrando en _loadTextos');
     final prefs = await SharedPreferences.getInstance();
     final cacheKey = 'textos_${widget.fiesta.codigo}';
     final timestampKey = '${cacheKey}_timestamp';
@@ -48,6 +49,7 @@ class _FiestaScreenState extends State<FiestaScreen> {
       final isValid = lastSaved != null && now.difference(lastSaved) <= cacheDuration;
 
       if (isValid) {
+        print('[TAG] Cargando desde caché');
         final jsonList = jsonDecode(prefs.getString(cacheKey)!);
         _textos = List<Texto>.from(jsonList.map((e) => Texto.fromFirestore(e)));
         setState(() {
@@ -58,22 +60,50 @@ class _FiestaScreenState extends State<FiestaScreen> {
     }
 
     // Si no hay caché válido, descarga desde Firestore
-    final snapshot = await FirebaseFirestore.instance
-        .collection('textos')
-        .orderBy('orden')
-        .get();
-
     final fiestaId = widget.fiesta.codigo;
     final tiempoId = widget.fiesta.tiempo;
 
-    _textos = snapshot.docs
-        .map((doc) => Texto.fromFirestore(doc.data() as Map<String, dynamic>))
-        .where((texto) =>
-          (texto.fiestas.contains(fiestaId)) || // O está asociado a la misma fiesta o al mismo tiempo
-          (texto.tiempos.contains(tiempoId))
-        )
+    print('[TAG] Consultando Firestore: fiestaId=$fiestaId, tiempoId=$tiempoId');
+
+    // Firestore queries
+    final textosFiestaSnap = await FirebaseFirestore.instance
+        .collection('textos')
+        .where('fiestas', arrayContains: fiestaId)
+        .orderBy('orden')
+        .get();
+
+    print('[TAG] textosFiestaSnap.docs.length: ${textosFiestaSnap.docs.length}');
+
+    final textosTiempoSnap = await FirebaseFirestore.instance
+        .collection('textos')
+        .where('tiempos', arrayContains: tiempoId)
+        .orderBy('orden')
+        .get();
+
+    print('[TAG] textosTiempoSnap.docs.length: ${textosTiempoSnap.docs.length}');
+
+    // Unir y filtrar duplicados por 'orden' o por algún ID único si lo tienes
+    final allDocs = [
+      ...textosFiestaSnap.docs,
+      ...textosTiempoSnap.docs,
+    ];
+
+    print('[TAG] allDocs.length: ${allDocs.length}');
+
+    // Eliminar duplicados (asumiendo que la combinación de 'orden' y 'txt' es única)
+    final uniqueDocs = {
+      for (var doc in allDocs) doc.id: doc,
+    }.values.toList();
+
+    print('[TAG] uniqueDocs.length: ${uniqueDocs.length}');
+
+    _textos = uniqueDocs
+        .map((doc) => Texto.fromFirestore(doc.data()))
         .toList();
 
+    print('[TAG] _textos.length: ${_textos.length}');
+
+    // Añadir el título al principio si lo deseas
     Texto titulo = Texto.titulo(widget.fiesta.nombre.toUpperCase(), widget.fiesta.codigo);
     _textos.insert(0, titulo);
 
@@ -83,7 +113,7 @@ class _FiestaScreenState extends State<FiestaScreen> {
     // Guardamos la fecha/hora de guardado
     await prefs.setString(timestampKey, DateTime.now().toIso8601String());
 
-    print('Hecho - guardado en caché');
+    print('[TAG] Hecho - guardado en caché');
 
     setState(() {
       _isLoading = false;
@@ -112,8 +142,9 @@ class _FiestaScreenState extends State<FiestaScreen> {
           var text = cfg.uppercase ? texto.txt.toUpperCase() : texto.txt;
 
           if (texto.tipo == 1) {
-            return ListTile(
-              title: buildTextoNormalConCruces(text, cfg),
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16), // margen lateral
+              child: buildTextoConCruces(text, cfg),
             );
           }
           else if (texto.tipo == 3) {
@@ -121,23 +152,28 @@ class _FiestaScreenState extends State<FiestaScreen> {
               // Asegura un color base explícito para el tramo "negro"
               style: cfg.style.copyWith(color: Colors.black),
               // Resalta hasta el primer punto o punto y coma (ajusta a tu necesidad)
-              highlightUntilPattern: RegExp(r'[.;]'),
+              highlightUntilPattern: RegExp(r'[.:;]'),
               // Color del tramo inicial
-              highlightColor: Colors.red,
+              highlightColor: Color(0xFFB00020),
             );
 
-            return ListTile(
-              title: buildTextoConEstilo(text, cfg3),
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16), // margen lateral
+              child: buildTextoConEstilo(text, cfg3),
+            );
+          }
+          else if (texto.tipo == 4 || texto.tipo == 5 || texto.tipo == 8) {
+            return Padding(
+              padding: const EdgeInsets.only(top: 25, bottom: 25, left: 16, right: 16), // margen arriba y lateral
+              child: Text(text, style: cfg.style, textAlign: cfg.align),
             );
           }
           else {
-            return ListTile(
-              title: Padding(
+            return Padding(
                 padding: texto.tipo == 7
-                    ? const EdgeInsets.only(left: 30) // sangría de todo el bloque
-                    : EdgeInsets.zero,
+                    ? const EdgeInsets.only(left: 30, right: 16, ) // sangría + margen derecho
+                    : const EdgeInsets.symmetric(horizontal: 16),   // margen lateral
                 child: Text(text, style: cfg.style, textAlign: cfg.align),
-              ),
             );
           }
         },
@@ -149,44 +185,64 @@ class _FiestaScreenState extends State<FiestaScreen> {
 Widget buildTextoConEstilo(String raw, TipoTextoStyle cfg) {
   final text = cfg.uppercase ? raw.toUpperCase() : raw;
 
-  // Si no hay patrón, devolvemos un Text normal (sin spans)
+  final cruzPattern = RegExp('✠');
+  final cruzStyle = cfg.style.copyWith(color: const Color(0xFFB00020));
+
+  // Si no hay patrón de resaltado inicial, solo resaltamos cruces
   if (cfg.highlightUntilPattern == null || cfg.highlightColor == null) {
-    return Text(text, style: cfg.style, textAlign: cfg.align);
+    return Text.rich(
+      TextSpan(children: _resaltarOcurrencias(
+        text: text,
+        pattern: cruzPattern,
+        base: cfg.style,
+        highlight: cruzStyle,
+      )),
+      textAlign: cfg.align,
+    );
   }
 
   final m = cfg.highlightUntilPattern!.firstMatch(text);
   if (m == null) {
-    // nada que resaltar
-    return Text(text, style: cfg.style, textAlign: cfg.align);
+    return Text.rich(
+      TextSpan(children: _resaltarOcurrencias(
+        text: text,
+        pattern: cruzPattern,
+        base: cfg.style,
+        highlight: cruzStyle,
+      )),
+      textAlign: cfg.align,
+    );
   }
 
-  final cut = m.end; // incluye el símbolo (. o ;)
+  final cut = m.end;
   final before = text.substring(0, cut);
-  final after  = text.substring(cut);
-
-  final baseColor = cfg.style.color; // color para el resto
+  final after = text.substring(cut);
 
   return Text.rich(
     TextSpan(children: [
-      TextSpan(
+      ..._resaltarOcurrencias(
         text: before,
-        style: cfg.style.copyWith(color: cfg.highlightColor),
+        pattern: cruzPattern,
+        base: cfg.style.copyWith(color: cfg.highlightColor),
+        highlight: cruzStyle,
       ),
       if (after.isNotEmpty)
-        TextSpan(
+        ..._resaltarOcurrencias(
           text: after,
-          style: cfg.style.copyWith(color: baseColor),
+          pattern: cruzPattern,
+          base: cfg.style,
+          highlight: cruzStyle,
         ),
     ]),
     textAlign: cfg.align,
   );
 }
 
-Widget buildTextoNormalConCruces(String raw, TipoTextoStyle cfg) {
+Widget buildTextoConCruces(String raw, TipoTextoStyle cfg) {
   final text = cfg.uppercase ? raw.toUpperCase() : raw;
 
   final base = cfg.style; // tu estilo normal
-  final rojo = base.copyWith(color: Colors.red);
+  final rojo = base.copyWith(color: const Color(0xFFB00020));
 
   return Text.rich(
     TextSpan(children: _resaltarOcurrencias(

@@ -25,7 +25,7 @@ AppTextStyles buildAppTextStyles(TextTheme base) {
     TipoTexto.rubricaCentrada: TipoTextoStyle(
       style: f(base.bodyLarge ?? const TextStyle(fontSize: 16)).copyWith(
         color: const Color(0xFFB00020),
-        fontStyle: FontStyle.italic,
+        fontWeight: FontWeight.w700,
       ),
       align: TextAlign.center,
     ),
