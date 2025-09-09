@@ -8,6 +8,7 @@ import '../utils/texto.dart';
 import '../utils/control_estilos.dart';
 import '../utils/tipo_texto_style.dart';
 import '../utils/tipos_texto.dart';
+import '../widgets/render_texto_fiesta.dart';
 
 /// Pantalla que muestra los textos de una fiesta
 class FiestaScreen extends StatefulWidget {
@@ -121,6 +122,14 @@ class _FiestaScreenState extends State<FiestaScreen> {
         itemBuilder: (context, index) {
           final texto = _textos[index];
 
+          return renderTextoFiesta(
+            context: context,
+            texto: _textos[index],
+            index: index,
+            textos: _textos,
+          );
+
+          /*
           // Resolver estilo por tipo (tu función debería devolver TextStyle, no ThemeData)
           final TipoTextoStyle cfg = ControlEstilos.estiloPorTipo(context, TipoTexto.values[texto.tipo-1]);
           var text = cfg.uppercase ? texto.txt.toUpperCase() : texto.txt;
@@ -160,12 +169,14 @@ class _FiestaScreenState extends State<FiestaScreen> {
                 child: Text(text, style: cfg.style, textAlign: cfg.align),
             );
           }
+          */
         },
       ),
     );
   }
 }
 
+/*
 Widget buildTextoConEstilo(String raw, TipoTextoStyle cfg) {
   final text = cfg.uppercase ? raw.toUpperCase() : raw;
 
@@ -258,4 +269,4 @@ List<TextSpan> _resaltarOcurrencias({
     spans.add(TextSpan(text: text.substring(start), style: base));
   }
   return spans;
-}
+}*/
