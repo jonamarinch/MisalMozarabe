@@ -66,33 +66,17 @@ class _FiestaScreenState extends State<FiestaScreen> {
     print('[TAG] Consultando Firestore: fiestaId=$fiestaId, tiempoId=$tiempoId');
 
     // Firestore queries
-    final textosFiestaSnap = await FirebaseFirestore.instance
+    final textosSnap = await FirebaseFirestore.instance
         .collection('textos')
-        .where('fiestas', arrayContains: fiestaId)
+        .where('asoc', arrayContainsAny: [fiestaId, tiempoId])
         .orderBy('orden')
         .get();
 
-    print('[TAG] textosFiestaSnap.docs.length: ${textosFiestaSnap.docs.length}');
-
-    final textosTiempoSnap = await FirebaseFirestore.instance
-        .collection('textos')
-        .where('tiempos', arrayContains: tiempoId)
-        .orderBy('orden')
-        .get();
-
-    print('[TAG] textosTiempoSnap.docs.length: ${textosTiempoSnap.docs.length}');
-
-    // Unir y filtrar duplicados por 'orden' o por algún ID único si lo tienes
-    final allDocs = [
-      ...textosFiestaSnap.docs,
-      ...textosTiempoSnap.docs,
-    ];
-
-    print('[TAG] allDocs.length: ${allDocs.length}');
+    print('[TAG] textosSnap.docs.length: ${textosSnap.docs.length}');
 
     // Eliminar duplicados (asumiendo que la combinación de 'orden' y 'txt' es única)
     final uniqueDocs = {
-      for (var doc in allDocs) doc.id: doc,
+      for (var doc in textosSnap.docs) doc.id: doc,
     }.values.toList();
 
     print('[TAG] uniqueDocs.length: ${uniqueDocs.length}');
