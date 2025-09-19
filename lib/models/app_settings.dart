@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:ui' as ui; // ⬅️ importante para detectar idioma del sistema
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -51,9 +52,12 @@ class AppSettings {
     return AppSettings(
       locale: Locale(
         (loc?['languageCode'] as String?) ?? 'es',
-        (loc?['countryCode'] as String?)?.isEmpty ?? true ? null : loc?['countryCode'] as String?,
+        (loc?['countryCode'] as String?)?.isEmpty ?? true
+            ? null
+            : loc?['countryCode'] as String?,
       ),
-      themeMode: ThemeMode.values[(map['themeMode'] as num?)?.toInt() ?? ThemeMode.system.index],
+      themeMode: ThemeMode
+          .values[(map['themeMode'] as num?)?.toInt() ?? ThemeMode.system.index],
       textScale: (map['textScale'] as num?)?.toDouble() ?? 1.0,
       useSystemFont: map['useSystemFont'] as bool? ?? true,
     );
@@ -61,7 +65,9 @@ class AppSettings {
 
   String toJson() => jsonEncode(toMap());
   factory AppSettings.fromJson(String? source) =>
-      AppSettings.fromMap(source == null ? null : jsonDecode(source) as Map<String, dynamic>);
+      AppSettings.fromMap(source == null
+          ? null
+          : jsonDecode(source) as Map<String, dynamic>);
 }
 
 /// -------- Persistencia + Provider --------
@@ -77,7 +83,31 @@ class SettingsNotifier extends AsyncNotifier<AppSettings> {
   Future<AppSettings> build() async {
     _prefs = await SharedPreferences.getInstance();
     final raw = _prefs.getString(_kPrefsKey);
-    return AppSettings.fromJson(raw);
+    final stored = AppSettings.fromJson(raw);
+
+    // Si no hay nada guardado, elegimos el idioma del sistema como inicial.
+    if (raw == null) {
+      final systemLocale = _systemLocaleOrFallback();
+      final initial = stored.copyWith(locale: systemLocale);
+      // opcional: persiste inmediatamente para que quede fijado
+      unawaited(_persist(initial));
+      return initial;
+    }
+
+    return stored;
+  }
+
+  /// Devuelve español si el sistema está en español, en otro caso inglés.
+  Locale _systemLocaleOrFallback() {
+    final ui.Locale sys = ui.PlatformDispatcher.instance.locales.isNotEmpty
+        ? ui.PlatformDispatcher.instance.locales.first
+        : ui.PlatformDispatcher.instance.locale;
+
+    if (sys.languageCode.toLowerCase() == 'es') {
+      return const Locale('es');
+    } else {
+      return const Locale('en');
+    }
   }
 
   Future<void> _persist(AppSettings s) async {

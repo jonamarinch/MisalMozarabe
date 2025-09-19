@@ -24,6 +24,23 @@ class HomeScreen extends ConsumerWidget {
     final selectedDate = ref.watch(selectedDateProvider);
     final fiestaAsync = ref.watch(fiestaProvider);
     final textScale = ref.watch(currentTextScaleProvider); // Escala de texto
+    final currentLocale = ref.watch(localeProvider); // Idioma actual
+
+    // 1) Guarda el último locale válido para el calendario
+    final previousCalendarLocaleProvider = StateProvider<String>((_) => 'es_ES');
+
+    // 2) Cada vez que cambie el idioma, si NO es latín, lo recordamos
+    ref.listen<Locale>(localeProvider, (prev, next) {
+      if (next.languageCode != 'la') {
+        ref.read(previousCalendarLocaleProvider.notifier).state = next.toString();
+      }
+    });
+
+    // 3) Si el usuario selecciona latín, el calendario usa el último válido
+    final remembered = ref.watch(previousCalendarLocaleProvider);
+    final calendarLocale = currentLocale.languageCode == 'la'
+        ? remembered
+        : currentLocale.toString();
 
     return MediaQuery(
       // Aplicar escala de texto
@@ -84,7 +101,7 @@ class HomeScreen extends ConsumerWidget {
 
               // Calendario
               TableCalendar(
-                locale: ref.watch(localeProvider).toString(),
+                locale: calendarLocale,
                 firstDay: DateTime(2000),
                 lastDay: DateTime(2100),
                 focusedDay: selectedDate,
@@ -129,16 +146,21 @@ class HomeScreen extends ConsumerWidget {
               SizedBox(
                 height: 50,
                 child: fiestaAsync.when(
-                  data: (fiesta) => Text(
-                    fiesta == null
-                        ? "No se ha encontrado fiesta"
-                        : "Fiesta próxima: ${fiesta.nombre}",
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontFamily: 'Cardo',
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
+                  data: (fiesta) {
+                    if (fiesta == null) {
+                      return _getNoFiestaText(currentLocale.languageCode);
+                    }
+
+                    final nombreFiesta = fiesta.getNombreForLanguage(currentLocale.languageCode);
+                    return Text(
+                      _getFiestaProximaText(currentLocale.languageCode, nombreFiesta),
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontFamily: 'Cardo',
+                      ),
+                      textAlign: TextAlign.center,
+                    );
+                  },
                   loading: () => const SizedBox(height: 20),
                   error: (e, _) => Text('Error: $e'),
                 ),
@@ -178,7 +200,7 @@ class HomeScreen extends ConsumerWidget {
                         : null,
                     orElse: () => null,
                   ),
-                  child: const Text("Continuar"),
+                  child: Text(_getContinuarText(currentLocale.languageCode)),
                 ),
               ),
             ],
@@ -186,5 +208,57 @@ class HomeScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  // Funciones auxiliares para los textos traducidos
+  Widget _getNoFiestaText(String languageCode) {
+    final text = _getNoFiestaString(languageCode);
+    return Text(
+      text,
+      style: const TextStyle(
+        fontSize: 20,
+        fontFamily: 'Cardo',
+      ),
+      textAlign: TextAlign.center,
+    );
+  }
+
+  String _getNoFiestaString(String languageCode) {
+    switch (languageCode) {
+      case 'es':
+        return "No se ha encontrado fiesta";
+      case 'en':
+        return "No feast found";
+      case 'la':
+        return "Festum non inventum";
+      default:
+        return "No se ha encontrado fiesta";
+    }
+  }
+
+  String _getFiestaProximaText(String languageCode, String nombreFiesta) {
+    switch (languageCode) {
+      case 'es':
+        return "Fiesta próxima: $nombreFiesta";
+      case 'en':
+        return "Next feast: $nombreFiesta";
+      case 'la':
+        return "Festum proximum: $nombreFiesta";
+      default:
+        return "Fiesta próxima: $nombreFiesta";
+    }
+  }
+
+  String _getContinuarText(String languageCode) {
+    switch (languageCode) {
+      case 'es':
+        return "Continuar";
+      case 'en':
+        return "Continue";
+      case 'la':
+        return "Procedere";
+      default:
+        return "Continuar";
+    }
   }
 }

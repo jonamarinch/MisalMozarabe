@@ -36,8 +36,13 @@ class _FiestaScreenState extends ConsumerState<FiestaScreen> {
   // Carga textos desde caché o Firestore
   Future<void> _loadTextos() async {
     print('[TAG] Entrando en _loadTextos');
+
+    // Obtener el idioma actual
+    final currentLocale = ref.read(localeProvider);
+    final languageCode = currentLocale.languageCode;
+
     final prefs = await SharedPreferences.getInstance();
-    final cacheKey = 'textos_${widget.fiesta.codigo}';
+    final cacheKey = 'textos_${widget.fiesta.codigo}_$languageCode';
     final timestampKey = '${cacheKey}_timestamp';
 
     // Tiempo actual para comparar
@@ -49,7 +54,7 @@ class _FiestaScreenState extends ConsumerState<FiestaScreen> {
       final isValid = lastSaved != null && now.difference(lastSaved) <= cacheDuration;
 
       if (isValid) {
-        print('[TAG] Cargando desde caché');
+        print('[TAG] Cargando desde caché para idioma: $languageCode');
         final jsonList = jsonDecode(prefs.getString(cacheKey)!);
         _textos = List<Texto>.from(jsonList.map((e) => Texto.fromFirestore(e)));
         setState(() {
@@ -63,7 +68,7 @@ class _FiestaScreenState extends ConsumerState<FiestaScreen> {
     final fiestaId = widget.fiesta.codigo;
     final tiempoId = widget.fiesta.tiempo;
 
-    print('[TAG] Consultando Firestore: fiestaId=$fiestaId, tiempoId=$tiempoId');
+    print('[TAG] Consultando Firestore: fiestaId=$fiestaId, tiempoId=$tiempoId, idioma=$languageCode');
 
     // Firestore queries
     final textosSnap = await FirebaseFirestore.instance
@@ -87,17 +92,23 @@ class _FiestaScreenState extends ConsumerState<FiestaScreen> {
 
     print('[TAG] _textos.length: ${_textos.length}');
 
-    // Añadir el título al principio si lo deseas
-    Texto titulo = Texto.titulo(widget.fiesta.nombre.toUpperCase(), widget.fiesta.codigo);
+    // Añadir el título al principio con todos los idiomas
+    final nombreFiesta = widget.fiesta.getNombreForLanguage(languageCode);
+    Texto titulo = Texto.titulo(
+        widget.fiesta.nombre_es.toUpperCase(),
+        widget.fiesta.nombre_en.toUpperCase(),
+        widget.fiesta.nombre_la.toUpperCase(),
+        widget.fiesta.codigo
+    );
     _textos.insert(0, titulo);
 
-    // Guardamos los textos en caché
+    // Guardamos los textos en caché con el idioma
     final jsonTextos = jsonEncode(_textos.map((t) => t.toJson()).toList());
     await prefs.setString(cacheKey, jsonTextos);
     // Guardamos la fecha/hora de guardado
     await prefs.setString(timestampKey, DateTime.now().toIso8601String());
 
-    print('[TAG] Hecho - guardado en caché');
+    print('[TAG] Hecho - guardado en caché para idioma: $languageCode');
 
     setState(() {
       _isLoading = false;
@@ -105,8 +116,36 @@ class _FiestaScreenState extends ConsumerState<FiestaScreen> {
   }
 
   @override
+  void didUpdateWidget(FiestaScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Si cambia la fiesta, recarga
+    if (oldWidget.fiesta.codigo != widget.fiesta.codigo) {
+      _loadTextos();
+    }
+  }
+
+  // Método para detectar cambios de idioma y recargar si es necesario
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Detectar si cambió el idioma y recargar textos
+    final currentLocale = ref.read(localeProvider);
+    // Aquí podrías guardar el idioma anterior y comparar si cambió
+    // para recargar automáticamente
+  }
+
+  @override
   Widget build(BuildContext context) {
     final textScale = ref.watch(currentTextScaleProvider); // Escala de texto
+    final currentLocale = ref.watch(localeProvider); // Idioma actual
+
+    // Detectar cambios de idioma y recargar si es necesario
+    ref.listen<Locale>(localeProvider, (previous, next) {
+      if (previous != null && previous.languageCode != next.languageCode) {
+        print('[TAG] Idioma cambió de ${previous.languageCode} a ${next.languageCode}, recargando textos...');
+        _loadTextos();
+      }
+    });
 
     return MediaQuery(
       // Aplicar escala de texto
@@ -134,9 +173,10 @@ class _FiestaScreenState extends ConsumerState<FiestaScreen> {
 
             return renderTextoFiesta(
               context: context,
-              texto: _textos[index],
+              texto: texto,
               index: index,
               textos: _textos,
+              languageCode: currentLocale.languageCode, // Pasar el idioma
             );
           },
         ),

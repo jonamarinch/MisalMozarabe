@@ -10,9 +10,14 @@ Widget renderTextoFiesta({
   required Texto texto,
   required int index,
   required List<Texto> textos,
+  required String languageCode, // Nuevo parámetro para el idioma
 }) {
   final TipoTextoStyle cfg = ControlEstilos.estiloPorTipo(context, TipoTexto.values[texto.tipo - 1]);
-  final text = cfg.uppercase ? texto.txt.toUpperCase() : texto.txt;
+
+  // Obtener el texto en el idioma correcto
+  final rawText = texto.getTextForLanguage(languageCode);
+  final text = cfg.uppercase ? rawText.toUpperCase() : rawText;
+
   final siguiente = index + 1 < textos.length ? textos[index + 1] : null;
   final tipoActual = texto.tipo;
   final tipoSiguiente = siguiente?.tipo;
