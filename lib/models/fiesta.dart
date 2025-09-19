@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 // Modelo de datos para representar una fiesta litúrgica
 class Fiesta {
   /// Código identificador único de la fiesta (ej: 'cua1', 'pas3', etc.)
@@ -30,4 +32,17 @@ class Fiesta {
       tiempo: json['tiempo'],
     );
   }
+}
+
+// --- Nueva función para obtener una fiesta por código ---
+Future<Fiesta?> getFiesta(String? codigo) async {
+  if (codigo == null || codigo.isEmpty) return null;
+
+  final db = FirebaseFirestore.instance;
+  // Ajusta el nombre de la colección si en tu proyecto es otro
+  final doc = await db.collection('fiestas').doc(codigo).get();
+
+  if (!doc.exists) return null;
+  final data = doc.data() as Map<String, dynamic>;
+  return Fiesta.fromFirestore(doc.id, data);
 }

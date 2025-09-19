@@ -1,0 +1,114 @@
+import 'dart:async';
+import 'dart:convert';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+/// -------- Modelo inmutable --------
+@immutable
+class AppSettings {
+  final Locale locale;
+  final ThemeMode themeMode;
+  final double textScale;
+  final bool useSystemFont;
+
+  const AppSettings({
+    this.locale = const Locale('es'),
+    this.themeMode = ThemeMode.system,
+    this.textScale = 1.0,
+    this.useSystemFont = false,
+  });
+
+  AppSettings copyWith({
+    Locale? locale,
+    ThemeMode? themeMode,
+    double? textScale,
+    bool? useSystemFont,
+  }) {
+    return AppSettings(
+      locale: locale ?? this.locale,
+      themeMode: themeMode ?? this.themeMode,
+      textScale: textScale ?? this.textScale,
+      useSystemFont: useSystemFont ?? this.useSystemFont,
+    );
+  }
+
+  Map<String, dynamic> toMap() => {
+    'locale': {
+      'languageCode': locale.languageCode,
+      'countryCode': locale.countryCode,
+    },
+    'themeMode': themeMode.index,
+    'textScale': textScale,
+    'useSystemFont': useSystemFont,
+  };
+
+  factory AppSettings.fromMap(Map<String, dynamic>? map) {
+    if (map == null) return const AppSettings();
+    final loc = (map['locale'] as Map?)?.cast<String, dynamic>();
+    return AppSettings(
+      locale: Locale(
+        (loc?['languageCode'] as String?) ?? 'es',
+        (loc?['countryCode'] as String?)?.isEmpty ?? true ? null : loc?['countryCode'] as String?,
+      ),
+      themeMode: ThemeMode.values[(map['themeMode'] as num?)?.toInt() ?? ThemeMode.system.index],
+      textScale: (map['textScale'] as num?)?.toDouble() ?? 1.0,
+      useSystemFont: map['useSystemFont'] as bool? ?? true,
+    );
+  }
+
+  String toJson() => jsonEncode(toMap());
+  factory AppSettings.fromJson(String? source) =>
+      AppSettings.fromMap(source == null ? null : jsonDecode(source) as Map<String, dynamic>);
+}
+
+/// -------- Persistencia + Provider --------
+const _kPrefsKey = 'app_settings_v1';
+
+final settingsProvider =
+AsyncNotifierProvider<SettingsNotifier, AppSettings>(SettingsNotifier.new);
+
+class SettingsNotifier extends AsyncNotifier<AppSettings> {
+  late SharedPreferences _prefs;
+
+  @override
+  Future<AppSettings> build() async {
+    _prefs = await SharedPreferences.getInstance();
+    final raw = _prefs.getString(_kPrefsKey);
+    return AppSettings.fromJson(raw);
+  }
+
+  Future<void> _persist(AppSettings s) async {
+    await _prefs.setString(_kPrefsKey, s.toJson());
+  }
+
+  Future<void> _update(FutureOr<AppSettings> Function(AppSettings) recipe) async {
+    final current = state.value ?? const AppSettings();
+    final next = await recipe(current);
+    state = AsyncData(next);
+    unawaited(_persist(next));
+  }
+
+  // ---- Mutadores públicos ----
+  Future<void> setLocale(Locale locale) =>
+      _update((s) => s.copyWith(locale: locale));
+
+  Future<void> setThemeMode(ThemeMode mode) =>
+      _update((s) => s.copyWith(themeMode: mode));
+
+  Future<void> setTextScale(double scale) =>
+      _update((s) => s.copyWith(textScale: scale.clamp(0.8, 1.6)));
+
+  Future<void> setUseSystemFont(bool value) =>
+      _update((s) => s.copyWith(useSystemFont: value));
+
+  Future<void> reset() async {
+    state = const AsyncData(AppSettings());
+    unawaited(_prefs.remove(_kPrefsKey));
+  }
+
+  // Para compatibilidad con settings_dialog.dart
+  Future<void> resetToDefaults() => reset();
+}

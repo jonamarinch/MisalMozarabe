@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../utils/tipo_texto_style.dart';
-import '../utils/tipos_texto.dart';
+import 'package:missale_mozarabicum/services/tipo_texto_style.dart';
+import 'package:missale_mozarabicum/services/tipos_texto.dart';
 import 'app_text_styles.dart';
 
 class ControlEstilos {

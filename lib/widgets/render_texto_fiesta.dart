@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../utils/texto.dart';
-import '../utils/control_estilos.dart';
-import '../utils/tipo_texto_style.dart';
-import '../utils/tipos_texto.dart';
+import 'package:missale_mozarabicum/models/texto.dart';
+import 'package:missale_mozarabicum/services/control_estilos.dart';
+import 'package:missale_mozarabicum/services/tipo_texto_style.dart';
+import 'package:missale_mozarabicum/services/tipos_texto.dart';
 import 'build_texto_widgets.dart'; // si buildTextoConEstilo, etc. se aíslan
 
 Widget renderTextoFiesta({

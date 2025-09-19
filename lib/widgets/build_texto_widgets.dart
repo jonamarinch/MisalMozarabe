@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../utils/tipo_texto_style.dart';
+import 'package:missale_mozarabicum/services/tipo_texto_style.dart';
 
 Widget buildTextoConEstilo(String raw, TipoTextoStyle cfg) {
   final text = cfg.uppercase ? raw.toUpperCase() : raw;

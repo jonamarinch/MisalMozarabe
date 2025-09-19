@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'tipos_texto.dart';
-import 'tipo_texto_style.dart';
+import 'package:missale_mozarabicum/services/tipos_texto.dart';
+import 'package:missale_mozarabicum/services/tipo_texto_style.dart';
 
 @immutable
 class AppTextStyles extends ThemeExtension<AppTextStyles> {
