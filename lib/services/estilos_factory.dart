@@ -1,3 +1,4 @@
+// lib/services/estilos_factory.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:missale_mozarabicum/services/app_text_styles.dart';
@@ -5,8 +6,22 @@ import 'package:missale_mozarabicum/services/tipos_texto.dart';
 import 'package:missale_mozarabicum/services/tipo_texto_style.dart';
 
 /// Construye los estilos de texto de la app adaptándose al tema actual
-AppTextStyles buildAppTextStyles(TextTheme base, {bool isDarkMode = false}) {
-  TextStyle f(TextStyle s) => GoogleFonts.cardo(textStyle: s);
+AppTextStyles buildAppTextStyles(
+    TextTheme base, {
+      bool isDarkMode = false,
+      bool useSystemFont = false,
+      double textScale = 1.0,
+    }) {
+  // Función para aplicar fuente según configuración
+  TextStyle f(TextStyle s) {
+    if (useSystemFont) {
+      return s.copyWith(fontSize: (s.fontSize ?? 16) * textScale);
+    } else {
+      return GoogleFonts.cardo(
+        textStyle: s.copyWith(fontSize: (s.fontSize ?? 16) * textScale),
+      );
+    }
+  }
 
   // Colores que se adaptan al tema
   final primaryRed = isDarkMode ? const Color(0xFFFF6B6B) : const Color(0xFFB00020);
@@ -68,9 +83,19 @@ AppTextStyles buildAppTextStyles(TextTheme base, {bool isDarkMode = false}) {
   });
 }
 
-/// Versión simplificada que detecta automáticamente el modo
-AppTextStyles buildAppTextStylesAuto(BuildContext context) {
+/// Provider que construye los estilos con la configuración actual
+/// Debe ser usado en lugar de buildAppTextStylesAuto
+AppTextStyles buildAppTextStylesWithSettings(
+    BuildContext context, {
+      required bool useSystemFont,
+      required double textScale,
+    }) {
   final brightness = Theme.of(context).brightness;
   final textTheme = Theme.of(context).textTheme;
-  return buildAppTextStyles(textTheme, isDarkMode: brightness == Brightness.dark);
+  return buildAppTextStyles(
+    textTheme,
+    isDarkMode: brightness == Brightness.dark,
+    useSystemFont: useSystemFont,
+    textScale: textScale,
+  );
 }

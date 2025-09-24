@@ -51,7 +51,7 @@ build/
 # Claves de Google
 android/app/google-services.json
 ios/Runner/GoogleService-Info.plist
-lib/main.dart
+#lib/main.dart
 
 # Environment variables
 .env

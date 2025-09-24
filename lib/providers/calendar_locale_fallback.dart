@@ -17,7 +17,7 @@ String _safeInitialCalendarLocale() {
   if (lang == 'la') return 'en_US';
 
   // Si no es latín, construye lang_COUNTRY si hay, si no lang
-  return country != null ? '${lang}_${country}' : lang;
+  return country != null ? '${lang}_$country' : lang;
 }
 
 // Valor inicial basado en el sistema (mejor que 'es_ES' fijo)

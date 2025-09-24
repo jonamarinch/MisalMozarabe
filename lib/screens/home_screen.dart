@@ -12,18 +12,19 @@ final selectedDateProvider = StateProvider<DateTime>((ref) => DateTime.now());
 // Provider para la fiesta
 final fiestaProvider = FutureProvider.autoDispose<fiesta.Fiesta?>((ref) async {
   final date = ref.watch(selectedDateProvider);
-  final codigo = await LiturgicalCalendar.getFiestaDesde(date);
-  if (codigo == null || codigo.isEmpty) return null;
+  final codigo = LiturgicalCalendar.getFiestaDesde(date);
+  if (codigo.isEmpty) return null;
   return fiesta.getFiesta(codigo);
 });
 
 /// Pantalla principal donde se elige una fecha y se muestra la fiesta correspondiente
 class HomeScreen extends ConsumerWidget {
+  const HomeScreen({super.key});
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedDate = ref.watch(selectedDateProvider);
     final fiestaAsync = ref.watch(fiestaProvider);
-    final textScale = ref.watch(currentTextScaleProvider); // Escala de texto
     final currentLocale = ref.watch(localeProvider); // Idioma actual
 
     // 1) Guarda el último locale válido para el calendario
@@ -42,32 +43,27 @@ class HomeScreen extends ConsumerWidget {
         ? remembered
         : currentLocale.toString();
 
-    return MediaQuery(
-      // Aplicar escala de texto
-      data: MediaQuery.of(context).copyWith(
-        textScaler: TextScaler.linear(textScale),
-      ),
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text(
-            "Missale Mozarabicum",
-            style: TextStyle(
-              fontFamily: 'Cardo',
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 1.2,
-            ),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          "Missale Mozarabicum",
+          style: TextStyle(
+            fontFamily: 'Cardo',
+            fontSize: 22,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 1.2,
           ),
-          // Botón de configuración en el AppBar
-          actions: const [
-            SettingsAppBarButton(),
-          ],
         ),
-        body: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
+        // Botón de configuración en el AppBar
+        actions: const [
+          SettingsAppBarButton(),
+        ],
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
 
               // Separador visual grande con cruz
               Padding(
@@ -206,7 +202,6 @@ class HomeScreen extends ConsumerWidget {
             ],
           ),
         ),
-      ),
     );
   }
 

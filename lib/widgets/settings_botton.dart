@@ -3,7 +3,7 @@ import 'settings_dialog.dart';
 
 /// Botón flotante para abrir la configuración
 class SettingsFloatingButton extends StatelessWidget {
-  const SettingsFloatingButton({Key? key}) : super(key: key);
+  const SettingsFloatingButton({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +27,7 @@ class SettingsFloatingButton extends StatelessWidget {
 
 /// Botón de configuración para el AppBar
 class SettingsAppBarButton extends StatelessWidget {
-  const SettingsAppBarButton({Key? key}) : super(key: key);
+  const SettingsAppBarButton({super.key});
 
   @override
   Widget build(BuildContext context) {

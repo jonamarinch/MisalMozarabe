@@ -4,7 +4,7 @@ import 'package:missale_mozarabicum/models/app_settings.dart';
 
 /// Ventana modal para configurar la aplicación
 class SettingsDialog extends ConsumerWidget {
-  const SettingsDialog({Key? key}) : super(key: key);
+  const SettingsDialog({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -181,7 +181,7 @@ class _LanguageSelector extends StatelessWidget {
     final languages = [
       {'code': 'es_ES', 'name': 'Español', 'locale': const Locale('es', 'ES')},
       {'code': 'en_US', 'name': 'English', 'locale': const Locale('en', 'US')},
-      {'code': 'la_VA', 'name': 'Latina', 'locale': const Locale('la', 'VA')},
+      {'code': 'la_VA', 'name': 'Latinum', 'locale': const Locale('la', 'VA')},
     ];
 
     return Container(

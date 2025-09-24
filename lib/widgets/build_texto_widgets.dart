@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:missale_mozarabicum/services/tipo_texto_style.dart';
 
-Widget buildTextoConEstilo(String raw, TipoTextoStyle cfg) {
+Widget buildTextoConEstilo(String raw, TipoTextoStyle cfg, {required BuildContext context}) {
   final text = cfg.uppercase ? raw.toUpperCase() : raw;
 
   final cruzPattern = RegExp('✠');
-  final cruzStyle = cfg.style.copyWith(color: const Color(0xFFB00020));
+  final isDark = Theme.of(context).brightness == Brightness.dark;
+  final cruzStyle = cfg.style.copyWith(
+    color: isDark ? const Color(0xFFFF6B6B) : const Color(0xFFB00020),
+  );
 
   if (cfg.highlightUntilPattern == null || cfg.highlightColor == null) {
     return Text.rich(
@@ -56,11 +59,14 @@ Widget buildTextoConEstilo(String raw, TipoTextoStyle cfg) {
   );
 }
 
-Widget buildTextoConCruces(String raw, TipoTextoStyle cfg) {
+Widget buildTextoConCruces(String raw, TipoTextoStyle cfg, {required BuildContext context}) {
   final text = cfg.uppercase ? raw.toUpperCase() : raw;
 
   final base = cfg.style;
-  final rojo = base.copyWith(color: const Color(0xFFB00020));
+  final isDark = Theme.of(context).brightness == Brightness.dark;
+  final rojo = base.copyWith(
+    color: isDark ? const Color(0xFFFF6B6B) : const Color(0xFFB00020),
+  );
 
   return Text.rich(
     TextSpan(children: _resaltarOcurrencias(

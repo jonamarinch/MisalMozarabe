@@ -1,4 +1,6 @@
+// lib/widgets/render_texto_fiesta.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:missale_mozarabicum/models/texto.dart';
 import 'package:missale_mozarabicum/services/control_estilos.dart';
 import 'package:missale_mozarabicum/services/tipo_texto_style.dart';
@@ -7,12 +9,17 @@ import 'build_texto_widgets.dart'; // si buildTextoConEstilo, etc. se aíslan
 
 Widget renderTextoFiesta({
   required BuildContext context,
+  required WidgetRef ref,
   required Texto texto,
   required int index,
   required List<Texto> textos,
   required String languageCode, // Nuevo parámetro para el idioma
 }) {
-  final TipoTextoStyle cfg = ControlEstilos.estiloPorTipo(context, TipoTexto.values[texto.tipo - 1]);
+  final TipoTextoStyle cfg = ControlEstilos.estiloPorTipo(
+    context,
+    ref,
+    TipoTexto.values[texto.tipo - 1],
+  );
 
   // Obtener el texto en el idioma correcto
   final rawText = texto.getTextForLanguage(languageCode);
@@ -27,17 +34,17 @@ Widget renderTextoFiesta({
   if (texto.tipo == 1) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: buildTextoConCruces(text, cfg),
+      child: buildTextoConCruces(text, cfg, context: context),
     );
   } else if (texto.tipo == 3) {
     final cfg3 = cfg.copyWith(
-      style: cfg.style.copyWith(color: Colors.black),
+      style: cfg.style.copyWith(color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black),
       highlightUntilPattern: RegExp(r'[.:;]'),
-      highlightColor: Color(0xFFB00020),
+      highlightColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFFFF6B6B) : const Color(0xFFB00020),
     );
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: buildTextoConEstilo(text, cfg3),
+      child: buildTextoConEstilo(text, cfg3, context: context),
     );
   } else if (texto.tipo == 4 || texto.tipo == 5 || texto.tipo == 8) {
     return Padding(

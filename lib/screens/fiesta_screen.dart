@@ -13,7 +13,7 @@ import 'package:missale_mozarabicum/providers/settings_selectors.dart';
 class FiestaScreen extends ConsumerStatefulWidget {
   final Fiesta fiesta;
 
-  const FiestaScreen({Key? key, required this.fiesta}) : super(key: key);
+  const FiestaScreen({super.key, required this.fiesta});
 
   @override
   ConsumerState<FiestaScreen> createState() => _FiestaScreenState();
@@ -93,7 +93,6 @@ class _FiestaScreenState extends ConsumerState<FiestaScreen> {
     print('[TAG] _textos.length: ${_textos.length}');
 
     // Añadir el título al principio con todos los idiomas
-    final nombreFiesta = widget.fiesta.getNombreForLanguage(languageCode);
     Texto titulo = Texto.titulo(
         widget.fiesta.nombre_es.toUpperCase(),
         widget.fiesta.nombre_en.toUpperCase(),
@@ -128,15 +127,10 @@ class _FiestaScreenState extends ConsumerState<FiestaScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Detectar si cambió el idioma y recargar textos
-    final currentLocale = ref.read(localeProvider);
-    // Aquí podrías guardar el idioma anterior y comparar si cambió
-    // para recargar automáticamente
   }
 
   @override
   Widget build(BuildContext context) {
-    final textScale = ref.watch(currentTextScaleProvider); // Escala de texto
     final currentLocale = ref.watch(localeProvider); // Idioma actual
 
     // Detectar cambios de idioma y recargar si es necesario
@@ -147,39 +141,34 @@ class _FiestaScreenState extends ConsumerState<FiestaScreen> {
       }
     });
 
-    return MediaQuery(
-      // Aplicar escala de texto
-      data: MediaQuery.of(context).copyWith(
-        textScaler: TextScaler.linear(textScale),
+    return Scaffold(
+      appBar: AppBar(
+        // Botón de configuración en el AppBar
+        actions: const [
+          SettingsAppBarButton(),
+        ],
       ),
-      child: Scaffold(
-        appBar: AppBar(
-          // Botón de configuración en el AppBar
-          actions: const [
-            SettingsAppBarButton(),
-          ],
-        ),
-        body: _isLoading
-        // Indicador de carga
-            ? const Center(child: CircularProgressIndicator())
-        // Texto si no hay resultados
-            : _textos.isEmpty
-            ? const Center(child: Text('No hay textos para esta fiesta.'))
-        // Lista de textos
-            : ListView.builder(
-          itemCount: _textos.length,
-          itemBuilder: (context, index) {
-            final texto = _textos[index];
+      body: _isLoading
+      // Indicador de carga
+          ? const Center(child: CircularProgressIndicator())
+      // Texto si no hay resultados
+          : _textos.isEmpty
+          ? const Center(child: Text('No hay textos para esta fiesta.'))
+      // Lista de textos
+          : ListView.builder(
+        itemCount: _textos.length,
+        itemBuilder: (context, index) {
+          final texto = _textos[index];
 
-            return renderTextoFiesta(
-              context: context,
-              texto: texto,
-              index: index,
-              textos: _textos,
-              languageCode: currentLocale.languageCode, // Pasar el idioma
-            );
-          },
-        ),
+          return renderTextoFiesta(
+            context: context,
+            ref: ref,
+            texto: texto,
+            index: index,
+            textos: _textos,
+            languageCode: currentLocale.languageCode, // Pasar el idioma
+          );
+        },
       ),
     );
   }
