@@ -12,23 +12,18 @@ import 'dart:io' show Platform;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   await dotenv.load(fileName: ".env");
 
-  final apiKey = Platform.isIOS
-      ? dotenv.env['API_KEY_IOS']
-      : dotenv.env['API_KEY_ANDROID'];
+  // Obtener configuración de Firebase
+  final platform = Platform.isIOS ? 'IOS' : 'ANDROID';
+  print('🎯 Buscando variables para plataforma: $platform');
 
-  final appId = Platform.isIOS
-      ? dotenv.env['APP_ID_IOS']
-      : dotenv.env['APP_ID_ANDROID'];
-
-  final senderId = Platform.isIOS
-      ? dotenv.env['SENDER_ID_IOS']
-      : dotenv.env['SENDER_ID_ANDROID'];
-
-  final projectId = Platform.isIOS
-      ? dotenv.env['PROJECT_ID_IOS']
-      : dotenv.env['PROJECT_ID_ANDROID'];
+  print('API Key: ${dotenv.get('API_KEY_$platform')}');
+  final apiKey = dotenv.env['API_KEY_$platform']!;
+  final appId = dotenv.env['APP_ID_$platform']!;
+  final senderId = dotenv.env['SENDER_ID_$platform']!;
+  final projectId = dotenv.env['PROJECT_ID_$platform']!;
 
   // Inicializar Firebase
   await Firebase.initializeApp(
@@ -43,6 +38,7 @@ void main() async {
       // measurementId: dotenv.env['MEASUREMENT_ID'],
     ),
   );
+
 
   // Inicializar formatos de fecha para todos los idiomas que usas
   await Future.wait([

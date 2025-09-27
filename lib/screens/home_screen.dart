@@ -6,6 +6,7 @@ import 'package:table_calendar/table_calendar.dart';
 import 'package:missale_mozarabicum/screens/fiesta_screen.dart';
 import 'package:missale_mozarabicum/widgets/settings_botton.dart';
 import 'package:missale_mozarabicum/providers/settings_selectors.dart';
+import 'package:missale_mozarabicum/providers/calendar_locale_fallback.dart';
 
 // Provider para seleccionar fecha
 final selectedDateProvider = StateProvider<DateTime>((ref) => DateTime.now());
@@ -27,21 +28,11 @@ class HomeScreen extends ConsumerWidget {
     final fiestaAsync = ref.watch(fiestaProvider);
     final currentLocale = ref.watch(localeProvider); // Idioma actual
 
-    // 1) Guarda el último locale válido para el calendario
-    final previousCalendarLocaleProvider = StateProvider<String>((_) => 'es_ES');
+    // Usar el provider existente para manejar el locale del calendario
+    final calendarLocale = ref.watch(calendarLocaleForTableCalendarProvider);
 
-    // 2) Cada vez que cambie el idioma, si NO es latín, lo recordamos
-    ref.listen<Locale>(localeProvider, (prev, next) {
-      if (next.languageCode != 'la') {
-        ref.read(previousCalendarLocaleProvider.notifier).state = next.toString();
-      }
-    });
-
-    // 3) Si el usuario selecciona latín, el calendario usa el último válido
-    final remembered = ref.watch(previousCalendarLocaleProvider);
-    final calendarLocale = currentLocale.languageCode == 'la'
-        ? remembered
-        : currentLocale.toString();
+    // Configurar el listener para recordar el último locale válido
+    rememberLastValidCalendarLocale(ref);
 
     return Scaffold(
       appBar: AppBar(
@@ -158,7 +149,11 @@ class HomeScreen extends ConsumerWidget {
                     );
                   },
                   loading: () => const SizedBox(height: 20),
-                  error: (e, _) => Text('Error: $e'),
+                  error: (e, _) => Text(
+                    'Error: $e',
+                    style: const TextStyle(color: Colors.red),
+                    textAlign: TextAlign.center,
+                  ),
                 ),
               ),
 
