@@ -25,7 +25,7 @@ class _FiestaScreenState extends ConsumerState<FiestaScreen> {
   bool _isLoading = true;
 
   // static const Duration cacheDuration = Duration(days: 100); // Tiempo válido
-  static const Duration cacheDuration = Duration(seconds: 100); // Tiempo válido
+  static const Duration cacheDuration = Duration(days: 36500); // Tiempo válido
 
   @override
   void initState() {
