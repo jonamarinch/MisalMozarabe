@@ -32,13 +32,8 @@ void main() async {
       appId: appId!,
       messagingSenderId: senderId!,
       projectId: projectId!,
-      // para web:
-      // authDomain: dotenv.env['AUTH_DOMAIN'],
-      // storageBucket: dotenv.env['STORAGE_BUCKET'],
-      // measurementId: dotenv.env['MEASUREMENT_ID'],
     ),
   );
-
 
   // Inicializar formatos de fecha para todos los idiomas que usas
   await Future.wait([
@@ -97,13 +92,22 @@ class MyApp extends ConsumerWidget {
     final backgroundColor = isDark ? const Color(0xFF121212) : const Color(0xFFFFFBF7);
     final surfaceColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
     final onSurfaceColor = isDark ? Colors.white : Colors.black87;
+    final outlineColor = isDark ? Colors.grey[700]! : Colors.grey[300]!;
 
-    // Esquema de colores
-    final colorScheme = ColorScheme.fromSeed(
-      seedColor: primaryColor,
+    // Esquema de colores mejorado
+    final colorScheme = ColorScheme(
       brightness: brightness,
+      primary: primaryColor,
+      onPrimary: Colors.white,
+      secondary: primaryColor,
+      onSecondary: Colors.white,
+      error: isDark ? Colors.redAccent : Colors.red,
+      onError: Colors.white,
+      background: backgroundColor,
+      onBackground: onSurfaceColor,
       surface: surfaceColor,
       onSurface: onSurfaceColor,
+      outline: outlineColor,
     );
 
     // TextTheme base
@@ -143,6 +147,7 @@ class MyApp extends ConsumerWidget {
           color: onSurfaceColor,
           fontWeight: FontWeight.w600,
         ),
+        iconTheme: IconThemeData(color: onSurfaceColor),
       ),
 
       // Botones elevados
@@ -160,6 +165,7 @@ class MyApp extends ConsumerWidget {
       // Botones de texto
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
+          foregroundColor: isDark ? Colors.white70 : Colors.grey[600],
           textStyle: _getTextStyle(
             textTheme.labelLarge,
             useSystemFont: useSystemFont,
@@ -183,8 +189,41 @@ class MyApp extends ConsumerWidget {
       // Input decorations
       inputDecorationTheme: InputDecorationTheme(
         border: OutlineInputBorder(
-          borderSide: BorderSide(color: onSurfaceColor.withOpacity(0.3)),
+          borderSide: BorderSide(color: outlineColor),
         ),
+      ),
+
+      // Radio buttons
+      radioTheme: RadioThemeData(
+        fillColor: MaterialStateProperty.resolveWith((states) {
+          if (states.contains(MaterialState.selected)) {
+            return primaryColor;
+          }
+          return outlineColor;
+        }),
+      ),
+
+      // Switches
+      switchTheme: SwitchThemeData(
+        thumbColor: MaterialStateProperty.resolveWith((states) {
+          if (states.contains(MaterialState.selected)) {
+            return primaryColor;
+          }
+          return Colors.grey[400];
+        }),
+        trackColor: MaterialStateProperty.resolveWith((states) {
+          if (states.contains(MaterialState.selected)) {
+            return primaryColor.withOpacity(0.5);
+          }
+          return Colors.grey[300];
+        }),
+      ),
+
+      // Sliders
+      sliderTheme: SliderThemeData(
+        activeTrackColor: primaryColor,
+        thumbColor: primaryColor,
+        inactiveTrackColor: outlineColor,
       ),
     );
 

@@ -12,8 +12,22 @@ class SettingsDialog extends ConsumerWidget {
     final settings = settingsAsync.value ?? const AppSettings();
     final settingsNotifier = ref.read(settingsProvider.notifier);
 
+    // Detectar tema
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+
+    // Definir colores basados en el tema
+    final dialogBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final headerBg = isDark ? const Color(0xFF2D2D2D) : const Color(0xFFf9efee);
+    final contentBg = isDark ? const Color(0xFF1E1E1E) : const Color(0xFFfff8f7);
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final iconColor = isDark ? Colors.white70 : Colors.black87;
+    final borderColor = isDark ? Colors.grey.shade800 : Colors.grey.shade300;
+    final itemBg = isDark ? const Color(0xFF2D2D2D) : Colors.white;
+
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      backgroundColor: dialogBg,
       child: Container(
         width: MediaQuery.of(context).size.width * 0.85,
         constraints: BoxConstraints(
@@ -27,31 +41,28 @@ class SettingsDialog extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: const Color(0xFFf9efee),
+                color: headerBg,
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
               ),
               child: Row(
                 children: [
-                  const Icon(
-                    Icons.settings,
-                    color: Color(0xFF000000),
-                    size: 24,
-                  ),
+                  Icon(Icons.settings, color: iconColor, size: 24),
                   const SizedBox(width: 12),
-                  const Expanded(
+                  Expanded(
                     child: Text(
                       'Configuración',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w600,
                         fontFamily: 'Cardo',
+                        color: textColor,
                       ),
                     ),
                   ),
                   IconButton(
                     onPressed: () => Navigator.of(context).pop(),
                     icon: const Icon(Icons.close),
-                    color: Colors.grey[600],
+                    color: iconColor,
                   ),
                 ],
               ),
@@ -59,8 +70,8 @@ class SettingsDialog extends ConsumerWidget {
 
             // Contenido
             Flexible(
-              child: ColoredBox(
-                color: const Color(0xFFfff8f7),
+              child: Container(
+                color: contentBg,
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(20),
                   child: Column(
@@ -69,36 +80,62 @@ class SettingsDialog extends ConsumerWidget {
                       _SectionHeader(
                         icon: Icons.language,
                         title: 'Idioma',
+                        textColor: textColor,
+                        iconColor: iconColor,
                       ),
                       const SizedBox(height: 12),
                       _LanguageSelector(
                         currentLocale: settings.locale,
                         onChanged: settingsNotifier.setLocale,
+                        borderColor: borderColor,
+                        itemBg: itemBg,
+                        textColor: textColor,
+                        isDark: isDark,
                       ),
+                      /*
                       const SizedBox(height: 24),
                       _SectionHeader(
                         icon: Icons.palette,
                         title: 'Apariencia',
+                        textColor: textColor,
+                        iconColor: iconColor,
                       ),
                       const SizedBox(height: 12),
                       _ThemeSelector(
                         currentTheme: settings.themeMode,
                         onChanged: settingsNotifier.setThemeMode,
+                        borderColor: borderColor,
+                        itemBg: itemBg,
+                        textColor: textColor,
+                        iconColor: iconColor,
+                        isDark: isDark,
                       ),
+                      */
                       const SizedBox(height: 24),
                       _SectionHeader(
                         icon: Icons.text_fields,
                         title: 'Texto',
+                        textColor: textColor,
+                        iconColor: iconColor,
                       ),
                       const SizedBox(height: 12),
                       _TextScaleSlider(
                         currentScale: settings.textScale,
                         onChanged: settingsNotifier.setTextScale,
+                        borderColor: borderColor,
+                        itemBg: itemBg,
+                        textColor: textColor,
+                        isDark: isDark,
                       ),
                       const SizedBox(height: 16),
                       _SystemFontSwitch(
                         useSystemFont: settings.useSystemFont,
                         onChanged: settingsNotifier.setUseSystemFont,
+                        borderColor: borderColor,
+                        itemBg: itemBg,
+                        textColor: textColor,
+                        iconColor: iconColor,
+                        isDark: isDark,
                       ),
                       const SizedBox(height: 32),
                       Center(
@@ -114,10 +151,10 @@ class SettingsDialog extends ConsumerWidget {
                               );
                             }
                           },
-                          icon: const Icon(Icons.restore),
-                          label: const Text('Restablecer valores por defecto'),
-                          style: TextButton.styleFrom(
-                            foregroundColor: Colors.grey[600],
+                          icon: Icon(Icons.restore, color: iconColor),
+                          label: Text(
+                            'Restablecer valores por defecto',
+                            style: TextStyle(color: textColor),
                           ),
                         ),
                       ),
@@ -133,32 +170,32 @@ class SettingsDialog extends ConsumerWidget {
   }
 }
 
-/// Widget para encabezados de sección
 class _SectionHeader extends StatelessWidget {
   final IconData icon;
   final String title;
+  final Color textColor;
+  final Color iconColor;
 
   const _SectionHeader({
     required this.icon,
     required this.title,
+    required this.textColor,
+    required this.iconColor,
   });
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(
-          icon,
-          size: 20,
-          color: const Color(0xFF000000),
-        ),
+        Icon(icon, size: 20, color: iconColor),
         const SizedBox(width: 8),
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
             fontFamily: 'Cardo',
+            color: textColor,
           ),
         ),
       ],
@@ -166,14 +203,21 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
-/// Selector de idioma
 class _LanguageSelector extends StatelessWidget {
   final Locale currentLocale;
   final Function(Locale) onChanged;
+  final Color borderColor;
+  final Color itemBg;
+  final Color textColor;
+  final bool isDark;
 
   const _LanguageSelector({
     required this.currentLocale,
     required this.onChanged,
+    required this.borderColor,
+    required this.itemBg,
+    required this.textColor,
+    required this.isDark,
   });
 
   @override
@@ -184,10 +228,13 @@ class _LanguageSelector extends StatelessWidget {
       {'code': 'la_VA', 'name': 'Latinum', 'locale': const Locale('la', 'VA')},
     ];
 
+    final activeColor = isDark ? const Color(0xFFB8AAA1) : Colors.black87;
+
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey[300]!),
+        border: Border.all(color: borderColor),
         borderRadius: BorderRadius.circular(8),
+        color: itemBg,
       ),
       child: Column(
         children: languages.map((lang) {
@@ -199,12 +246,13 @@ class _LanguageSelector extends StatelessWidget {
               value: locale,
               groupValue: currentLocale,
               onChanged: (value) => value != null ? onChanged(value) : null,
-              activeColor: const Color(0xFF000000),
+              activeColor: activeColor,
             ),
             title: Text(
               lang['name'] as String,
               style: TextStyle(
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                color: textColor,
               ),
             ),
             onTap: () => onChanged(locale),
@@ -216,14 +264,23 @@ class _LanguageSelector extends StatelessWidget {
   }
 }
 
-/// Selector de tema
 class _ThemeSelector extends StatelessWidget {
   final ThemeMode currentTheme;
   final Function(ThemeMode) onChanged;
+  final Color borderColor;
+  final Color itemBg;
+  final Color textColor;
+  final Color iconColor;
+  final bool isDark;
 
   const _ThemeSelector({
     required this.currentTheme,
     required this.onChanged,
+    required this.borderColor,
+    required this.itemBg,
+    required this.textColor,
+    required this.iconColor,
+    required this.isDark,
   });
 
   @override
@@ -234,10 +291,13 @@ class _ThemeSelector extends StatelessWidget {
       {'mode': ThemeMode.dark, 'name': 'Modo oscuro', 'icon': Icons.dark_mode},
     ];
 
+    final activeColor = isDark ? const Color(0xFFB8AAA1) : Colors.black87;
+
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey[300]!),
+        border: Border.all(color: borderColor),
         borderRadius: BorderRadius.circular(8),
+        color: itemBg,
       ),
       child: Column(
         children: themes.map((theme) {
@@ -249,20 +309,17 @@ class _ThemeSelector extends StatelessWidget {
               value: mode,
               groupValue: currentTheme,
               onChanged: (value) => value != null ? onChanged(value) : null,
-              activeColor: const Color(0xFF000000),
+              activeColor: activeColor,
             ),
             title: Row(
               children: [
-                Icon(
-                  theme['icon'] as IconData,
-                  size: 20,
-                  color: Colors.grey[600],
-                ),
+                Icon(theme['icon'] as IconData, size: 20, color: iconColor),
                 const SizedBox(width: 8),
                 Text(
                   theme['name'] as String,
                   style: TextStyle(
                     fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                    color: textColor,
                   ),
                 ),
               ],
@@ -276,23 +333,34 @@ class _ThemeSelector extends StatelessWidget {
   }
 }
 
-/// Slider para escala de texto
 class _TextScaleSlider extends StatelessWidget {
   final double currentScale;
   final Function(double) onChanged;
+  final Color borderColor;
+  final Color itemBg;
+  final Color textColor;
+  final bool isDark;
 
   const _TextScaleSlider({
     required this.currentScale,
     required this.onChanged,
+    required this.borderColor,
+    required this.itemBg,
+    required this.textColor,
+    required this.isDark,
   });
 
   @override
   Widget build(BuildContext context) {
+    final activeColor = isDark ? const Color(0xFFB8AAA1) : Colors.black87;
+    final inactiveColor = isDark ? Colors.grey.shade700 : Colors.grey.shade300;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey[300]!),
+        border: Border.all(color: borderColor),
         borderRadius: BorderRadius.circular(8),
+        color: itemBg,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -300,19 +368,19 @@ class _TextScaleSlider extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Tamaño del texto'),
+              Text('Tamaño del texto', style: TextStyle(color: textColor)),
               Text(
                 '${(currentScale * 100).round()}%',
-                style: const TextStyle(fontWeight: FontWeight.w600),
+                style: TextStyle(fontWeight: FontWeight.w600, color: textColor),
               ),
             ],
           ),
           const SizedBox(height: 8),
           SliderTheme(
             data: SliderTheme.of(context).copyWith(
-              activeTrackColor: const Color(0xFF000000),
-              thumbColor: const Color(0xFF000000),
-              inactiveTrackColor: Colors.grey[300],
+              activeTrackColor: activeColor,
+              thumbColor: activeColor,
+              inactiveTrackColor: inactiveColor,
             ),
             child: Slider(
               value: currentScale,
@@ -325,8 +393,8 @@ class _TextScaleSlider extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Pequeño', style: TextStyle(fontSize: 12, color: Colors.grey[600])),
-              Text('Grande', style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+              Text('Pequeño', style: TextStyle(fontSize: 12, color: textColor.withOpacity(0.6))),
+              Text('Grande', style: TextStyle(fontSize: 12, color: textColor.withOpacity(0.6))),
             ],
           ),
         ],
@@ -335,43 +403,51 @@ class _TextScaleSlider extends StatelessWidget {
   }
 }
 
-/// Switch para usar fuente del sistema
 class _SystemFontSwitch extends StatelessWidget {
   final bool useSystemFont;
   final Function(bool) onChanged;
+  final Color borderColor;
+  final Color itemBg;
+  final Color textColor;
+  final Color iconColor;
+  final bool isDark;
 
   const _SystemFontSwitch({
     required this.useSystemFont,
     required this.onChanged,
+    required this.borderColor,
+    required this.itemBg,
+    required this.textColor,
+    required this.iconColor,
+    required this.isDark,
   });
 
   @override
   Widget build(BuildContext context) {
+    final activeColor = isDark ? const Color(0xFFB8AAA1) : Colors.black87;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey[300]!),
+        border: Border.all(color: borderColor),
         borderRadius: BorderRadius.circular(8),
+        color: itemBg,
       ),
       child: Row(
         children: [
-          Icon(
-            Icons.font_download,
-            size: 20,
-            color: Colors.grey[600],
-          ),
+          Icon(Icons.font_download, size: 20, color: iconColor),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'Usar fuente del sistema',
-                  style: TextStyle(fontWeight: FontWeight.w500),
+                  style: TextStyle(fontWeight: FontWeight.w500, color: textColor),
                 ),
                 Text(
                   'Utiliza la fuente predeterminada del dispositivo',
-                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                  style: TextStyle(fontSize: 12, color: textColor.withOpacity(0.6)),
                 ),
               ],
             ),
@@ -379,7 +455,7 @@ class _SystemFontSwitch extends StatelessWidget {
           Switch(
             value: useSystemFont,
             onChanged: onChanged,
-            activeColor: const Color(0xFF000000),
+            activeColor: activeColor,
           ),
         ],
       ),

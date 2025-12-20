@@ -26,13 +26,26 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedDate = ref.watch(selectedDateProvider);
     final fiestaAsync = ref.watch(fiestaProvider);
-    final currentLocale = ref.watch(localeProvider); // Idioma actual
+    final currentLocale = ref.watch(localeProvider);
+
+    // Detectar tema actual
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
 
     // Usar el provider existente para manejar el locale del calendario
     final calendarLocale = ref.watch(calendarLocaleForTableCalendarProvider);
 
     // Configurar el listener para recordar el último locale válido
     rememberLastValidCalendarLocale(ref);
+
+    // Colores explícitos basados en el tema
+    final crossColor = isDark ? const Color(0xFFFF6B6B) : const Color(0xFFc00000);
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final weekdayColor = isDark ? Colors.white : Colors.black87;
+    final weekendColor = isDark ? Colors.white70 : Colors.black54;
+    final selectedBorderColor = isDark ? const Color(0xFFB8AAA1) : Colors.blue;
+    final selectedTextColor = isDark ? const Color(0xFFB8AAA1) : Colors.blue;
+    final buttonColor = const Color(0xFFb8aaa1);
 
     return Scaffold(
       appBar: AppBar(
@@ -45,7 +58,6 @@ class HomeScreen extends ConsumerWidget {
             letterSpacing: 1.2,
           ),
         ),
-        // Botón de configuración en el AppBar
         actions: const [
           SettingsAppBarButton(),
         ],
@@ -55,159 +67,194 @@ class HomeScreen extends ConsumerWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            // Separador visual grande con cruz
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16.0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Divider(
+                      thickness: 2,
+                      color: crossColor,
+                      endIndent: 8,
+                    ),
+                  ),
+                  Text(
+                    '✠',
+                    style: TextStyle(
+                      fontSize: 32,
+                      color: crossColor,
+                    ),
+                  ),
+                  Expanded(
+                    child: Divider(
+                      thickness: 2,
+                      color: crossColor,
+                      indent: 8,
+                    ),
+                  ),
+                ],
+              ),
+            ),
 
-              // Separador visual grande con cruz
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16.0),
-                child: Row(
-                  children: [
-                    const Expanded(
-                      child: Divider(
-                        thickness: 2,
-                        color: Color(0xFFc00000),
-                        endIndent: 8,
-                      ),
-                    ),
-                    const Text(
-                      '✠',
-                      style: TextStyle(
-                        fontSize: 32,
-                        color: Color(0xFFc00000),
-                      ),
-                    ),
-                    const Expanded(
-                      child: Divider(
-                        thickness: 2,
-                        color: Color(0xFFc00000),
-                        indent: 8,
-                      ),
-                    ),
-                  ],
+            // Calendario
+            TableCalendar(
+              locale: calendarLocale,
+              firstDay: DateTime(2000),
+              lastDay: DateTime(2100),
+              focusedDay: selectedDate,
+              selectedDayPredicate: (day) => isSameDay(day, selectedDate),
+              onDaySelected: (day, focusedDay) {
+                ref.read(selectedDateProvider.notifier).state = day;
+              },
+              calendarFormat: CalendarFormat.month,
+              availableCalendarFormats: const {
+                CalendarFormat.month: '',
+              },
+              sixWeekMonthsEnforced: true,
+              headerVisible: true,
+              headerStyle: HeaderStyle(
+                titleCentered: true,
+                formatButtonVisible: false,
+                titleTextStyle: TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w600,
+                  color: textColor,
+                ),
+                leftChevronIcon: Icon(
+                  Icons.chevron_left,
+                  color: textColor,
+                ),
+                rightChevronIcon: Icon(
+                  Icons.chevron_right,
+                  color: textColor,
                 ),
               ),
-
-              // Calendario
-              TableCalendar(
-                locale: calendarLocale,
-                firstDay: DateTime(2000),
-                lastDay: DateTime(2100),
-                focusedDay: selectedDate,
-                selectedDayPredicate: (day) => isSameDay(day, selectedDate),
-                onDaySelected: (day, focusedDay) {
-                  ref.read(selectedDateProvider.notifier).state = day;
-                },
-
-                calendarFormat: CalendarFormat.month,
-                availableCalendarFormats: const {
-                  CalendarFormat.month: '',
-                },
-
-                sixWeekMonthsEnforced: true,
-
-                headerVisible: true, // Controla la visibilidad de la cabecera (mes, botones)
-
-                headerStyle: HeaderStyle(
-                  titleCentered: true,
+              daysOfWeekStyle: DaysOfWeekStyle(
+                weekdayStyle: TextStyle(
+                  color: weekdayColor,
+                  fontWeight: FontWeight.w600,
                 ),
-
-                calendarStyle: CalendarStyle(
-                  outsideDaysVisible: false,
-                  isTodayHighlighted: false,
-                  selectedDecoration: BoxDecoration(
-                    color: Colors.transparent,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.blue),
-                  ),
-                  todayDecoration: BoxDecoration(
-                    color: Colors.transparent,
-                  ),
-                  defaultTextStyle: TextStyle(color: Colors.black87),
-                  weekendTextStyle: TextStyle(color: Colors.black54),
-                  selectedTextStyle: TextStyle(color: Colors.blue),
+                weekendStyle: TextStyle(
+                  color: weekendColor,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-
-              const SizedBox(height: 40),
-
-              // Texto indicativo de la fiesta
-              SizedBox(
-                height: 50,
-                child: fiestaAsync.when(
-                  data: (fiesta) {
-                    if (fiesta == null) {
-                      return _getNoFiestaText(currentLocale.languageCode);
-                    }
-
-                    final nombreFiesta = fiesta.getNombreForLanguage(currentLocale.languageCode);
-                    return Text(
-                      _getFiestaProximaText(currentLocale.languageCode, nombreFiesta),
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontFamily: 'Cardo',
-                      ),
-                      textAlign: TextAlign.center,
-                    );
-                  },
-                  loading: () => const SizedBox(height: 20),
-                  error: (e, _) => Text(
-                    'Error: $e',
-                    style: const TextStyle(color: Colors.red),
-                    textAlign: TextAlign.center,
+              calendarStyle: CalendarStyle(
+                outsideDaysVisible: false,
+                isTodayHighlighted: false,
+                selectedDecoration: BoxDecoration(
+                  color: Colors.transparent,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: selectedBorderColor,
+                    width: 2,
                   ),
                 ),
+                todayDecoration: const BoxDecoration(
+                  color: Colors.transparent,
+                ),
+                defaultTextStyle: TextStyle(
+                  color: textColor,
+                ),
+                weekendTextStyle: TextStyle(
+                  color: weekendColor,
+                ),
+                selectedTextStyle: TextStyle(
+                  color: selectedTextColor,
+                  fontWeight: FontWeight.w600,
+                ),
+                disabledTextStyle: TextStyle(
+                  color: isDark ? Colors.grey.shade700 : Colors.grey.shade400,
+                ),
               ),
+            ),
 
-              const SizedBox(height: 40),
+            const SizedBox(height: 40),
 
-              // Botón para acceder a la siguiente pantalla
-              FractionallySizedBox(
-                widthFactor: 0.4, // Ocupa el 40% del ancho del padre
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFb8aaa1), // Color acorde a tu estética
-                    foregroundColor: Colors.white, // Color del texto
-                    elevation: 3,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16), // Esquinas redondeadas
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                    textStyle: const TextStyle(
+            // Texto indicativo de la fiesta
+            SizedBox(
+              height: 50,
+              child: fiestaAsync.when(
+                data: (fiesta) {
+                  if (fiesta == null) {
+                    return _getNoFiestaText(currentLocale.languageCode, textColor);
+                  }
+
+                  final nombreFiesta = fiesta.getNombreForLanguage(currentLocale.languageCode);
+                  return Text(
+                    _getFiestaProximaText(currentLocale.languageCode, nombreFiesta),
+                    style: TextStyle(
+                      fontSize: 20,
                       fontFamily: 'Cardo',
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
-                      letterSpacing: 1.1,
+                      color: textColor,
                     ),
+                    textAlign: TextAlign.center,
+                  );
+                },
+                loading: () => const SizedBox(height: 20),
+                error: (e, _) => Text(
+                  'Error: $e',
+                  style: TextStyle(
+                    color: isDark ? Colors.redAccent : Colors.red,
                   ),
-                  onPressed: fiestaAsync.maybeWhen(
-                    data: (fiesta) => fiesta != null
-                        ? () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => FiestaScreen(fiesta: fiesta),
-                        ),
-                      );
-                    }
-                        : null,
-                    orElse: () => null,
-                  ),
-                  child: Text(_getContinuarText(currentLocale.languageCode)),
+                  textAlign: TextAlign.center,
                 ),
               ),
-            ],
-          ),
+            ),
+
+            const SizedBox(height: 40),
+
+            // Botón para acceder a la siguiente pantalla
+            FractionallySizedBox(
+              widthFactor: 0.4,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: buttonColor,
+                  foregroundColor: Colors.white,
+                  elevation: 3,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                  textStyle: const TextStyle(
+                    fontFamily: 'Cardo',
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                    letterSpacing: 1.1,
+                  ),
+                ),
+                onPressed: fiestaAsync.maybeWhen(
+                  data: (fiesta) => fiesta != null
+                      ? () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => FiestaScreen(fiesta: fiesta),
+                      ),
+                    );
+                  }
+                      : null,
+                  orElse: () => null,
+                ),
+                child: Text(_getContinuarText(currentLocale.languageCode)),
+              ),
+            ),
+          ],
         ),
+      ),
     );
   }
 
   // Funciones auxiliares para los textos traducidos
-  Widget _getNoFiestaText(String languageCode) {
+  Widget _getNoFiestaText(String languageCode, Color textColor) {
     final text = _getNoFiestaString(languageCode);
     return Text(
       text,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 20,
         fontFamily: 'Cardo',
+        color: textColor,
       ),
       textAlign: TextAlign.center,
     );
