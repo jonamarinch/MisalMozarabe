@@ -5,7 +5,10 @@ import 'package:missale_mozarabicum/models/texto.dart';
 import 'package:missale_mozarabicum/services/control_estilos.dart';
 import 'package:missale_mozarabicum/services/tipo_texto_style.dart';
 import 'package:missale_mozarabicum/services/tipos_texto.dart';
-import 'build_texto_widgets.dart'; // si buildTextoConEstilo, etc. se aíslan
+import 'build_texto_widgets.dart';
+
+// Constante para el espaciado mínimo entre textos
+const double _minVerticalSpacing = 8.0;
 
 Widget renderTextoFiesta({
   required BuildContext context,
@@ -13,7 +16,7 @@ Widget renderTextoFiesta({
   required Texto texto,
   required int index,
   required List<Texto> textos,
-  required String languageCode, // Nuevo parámetro para el idioma
+  required String languageCode,
 }) {
   final TipoTextoStyle cfg = ControlEstilos.estiloPorTipo(
     context,
@@ -21,7 +24,6 @@ Widget renderTextoFiesta({
     TipoTexto.values[texto.tipo - 1],
   );
 
-  // Obtener el texto en el idioma correcto
   final rawText = texto.getTextForLanguage(languageCode);
   final text = cfg.uppercase ? rawText.toUpperCase() : rawText;
 
@@ -29,35 +31,79 @@ Widget renderTextoFiesta({
   final tipoActual = texto.tipo;
   final tipoSiguiente = siguiente?.tipo;
 
-  final casoEspecial = (tipoActual == 4 && tipoSiguiente == 5) || (tipoActual == 5 && tipoSiguiente == 4);
+  final casoEspecial = (tipoActual == 4 && tipoSiguiente == 5) ||
+      (tipoActual == 5 && tipoSiguiente == 4);
 
+  // Tipo 1: Normal
   if (texto.tipo == 1) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.only(
+        left: 16,
+        right: 16,
+        top: _minVerticalSpacing,
+        bottom: _minVerticalSpacing,
+      ),
       child: buildTextoConCruces(text, cfg, context: context),
     );
-  } else if (texto.tipo == 3) {
+  }
+  // Tipo 3: Semirrubrica
+  else if (texto.tipo == 3) {
     final cfg3 = cfg.copyWith(
-      style: cfg.style.copyWith(color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black),
+      style: cfg.style.copyWith(
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Colors.white
+              : Colors.black
+      ),
       highlightUntilPattern: RegExp(r'[.:;]'),
-      highlightColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFFFF6B6B) : const Color(0xFFB00020),
+      highlightColor: Theme.of(context).brightness == Brightness.dark
+          ? const Color(0xFFFF6B6B)
+          : const Color(0xFFB00020),
     );
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.only(
+        left: 16,
+        right: 16,
+        top: _minVerticalSpacing,
+        bottom: _minVerticalSpacing,
+      ),
       child: buildTextoConEstilo(text, cfg3, context: context),
     );
-  } else if (texto.tipo == 4 || texto.tipo == 5 || texto.tipo == 8) {
+  }
+  // Tipos 4, 5, 8: Rúbricas centradas y título
+  else if (texto.tipo == 4 || texto.tipo == 5 || texto.tipo == 8) {
     return Padding(
       padding: casoEspecial
-          ? const EdgeInsets.only(top: 25, bottom: 0, left: 16, right: 16)
-          : const EdgeInsets.only(top: 25, bottom: 25, left: 16, right: 16),
+          ? const EdgeInsets.only(
+          top: 25,
+          bottom: _minVerticalSpacing,
+          left: 16,
+          right: 16
+      )
+          : const EdgeInsets.only(
+          top: 25,
+          bottom: 25,
+          left: 16,
+          right: 16
+      ),
       child: Text(text, style: cfg.style, textAlign: cfg.align),
     );
-  } else {
+  }
+  // Resto de tipos (2, 6, 7)
+  else {
     return Padding(
       padding: texto.tipo == 7
-          ? const EdgeInsets.only(left: 30, right: 16)
-          : const EdgeInsets.symmetric(horizontal: 16),
+          ? const EdgeInsets.only(
+        left: 30,
+        right: 16,
+        top: _minVerticalSpacing,
+        bottom: _minVerticalSpacing,
+      )
+          : EdgeInsets.only(
+        left: 16,
+        right: 16,
+        top: _minVerticalSpacing,
+        bottom: _minVerticalSpacing,
+      ),
       child: Text(text, style: cfg.style, textAlign: cfg.align),
     );
   }

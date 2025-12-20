@@ -22,11 +22,20 @@ final fiestaProvider = FutureProvider.autoDispose<fiesta.Fiesta?>((ref) async {
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
+  // Función para verificar si la fecha corresponde al sexto domingo de Adviento
+  bool _esSextoDomingoAdviento(DateTime date) {
+    final codigo = LiturgicalCalendar.getFiestaDesde(date);
+    return codigo == 'adv6';
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedDate = ref.watch(selectedDateProvider);
     final fiestaAsync = ref.watch(fiestaProvider);
     final currentLocale = ref.watch(localeProvider); // Idioma actual
+
+    // Verificar si es el sexto domingo de Adviento
+    final esAccesible = _esSextoDomingoAdviento(selectedDate);
 
     // Usar el provider existente para manejar el locale del calendario
     final calendarLocale = ref.watch(calendarLocaleForTableCalendarProvider);
@@ -178,19 +187,21 @@ class HomeScreen extends ConsumerWidget {
                       letterSpacing: 1.1,
                     ),
                   ),
-                  onPressed: fiestaAsync.maybeWhen(
-                    data: (fiesta) => fiesta != null
-                        ? () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => FiestaScreen(fiesta: fiesta),
-                        ),
-                      );
-                    }
+                  // Sólo se habilita si es el 6º domingo de Adviento
+                  onPressed: esAccesible
+                      ? fiestaAsync.maybeWhen(
+                        data: (fiesta) => fiesta != null
+                          ? () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => FiestaScreen(fiesta: fiesta),
+                              ),
+                            );
+                          }
                         : null,
                     orElse: () => null,
-                  ),
+                  ) : null, // null desactiva el botón
                   child: Text(_getContinuarText(currentLocale.languageCode)),
                 ),
               ),
